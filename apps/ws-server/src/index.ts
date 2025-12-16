@@ -1,14 +1,38 @@
 import { WebSocketServer } from "ws";
+import "dotenv/config"
+import jwt, { JwtPayload } from "jsonwebtoken"
 
 const wss = new WebSocketServer({port : 8080});
 
-wss.on('connection',socket=>{
+wss.on('connection',(socket,req)=>{
 
-  console.log("user connected");
+  const url = req.url;
 
-  socket.on('message',(data)=>{
-    console.log(data);
-    socket.send(data);
-  })
+  if(!url){
+    return;
+  }
+
+  const query = url.split("?")[1];
+
+  const queryParams = new URLSearchParams(query);
+
+  const token = queryParams.get('token') || "";
+
+  
+  try{
+    const decoded = jwt.verify(token,process.env.JWT_SECRET as string);
+
+    const userId = (decoded as JwtPayload).userId;
+
+    socket.on('message',(data)=>{
+      console.log(data);
+      socket.send(data);
+    })
+
+  }
+  catch(err){
+    wss.close();
+  }
+
 
 })
