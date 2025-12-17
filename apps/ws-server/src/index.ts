@@ -9,6 +9,7 @@ wss.on('connection',(socket,req)=>{
   const url = req.url;
 
   if(!url){
+    wss.close();
     return;
   }
 
@@ -17,12 +18,13 @@ wss.on('connection',(socket,req)=>{
   const queryParams = new URLSearchParams(query);
 
   const token = queryParams.get('token') || "";
-
   
   try{
-    const decoded = jwt.verify(token,process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(token,process.env.JWT_SECRET as string) as JwtPayload;
 
-    const userId = (decoded as JwtPayload).userId;
+    const userId = decoded.userId;
+
+    console.log(userId);
 
     socket.on('message',(data)=>{
       console.log(data);
@@ -33,6 +35,5 @@ wss.on('connection',(socket,req)=>{
   catch(err){
     wss.close();
   }
-
 
 })
