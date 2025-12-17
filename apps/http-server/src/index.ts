@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Auth } from "./middlewares/auth";
+import {JWT_SECRET} from "@repo/backend-common/config"
 import {AuthSchema,RoomSchema} from "@repo/common/schema"
 
 const app = express();
@@ -52,7 +53,7 @@ app.post("/signin", async (req, res) => {
 
   const id = "temp";
 
-  const token = jwt.sign({userId : id}, process.env.JWT_SECRET as string);
+  const token = jwt.sign({userId : id}, JWT_SECRET as string);
 
   res.send({ token });
 });
