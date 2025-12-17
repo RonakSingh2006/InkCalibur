@@ -1,6 +1,7 @@
-import { WebSocketServer } from "ws";
 import "dotenv/config"
+import { WebSocketServer } from "ws";
 import jwt, { JwtPayload } from "jsonwebtoken"
+import {JWT_SECRET} from "@repo/backend-common/config"
 
 const wss = new WebSocketServer({port : 8080});
 
@@ -20,7 +21,7 @@ wss.on('connection',(socket,req)=>{
   const token = queryParams.get('token') || "";
   
   try{
-    const decoded = jwt.verify(token,process.env.JWT_SECRET as string) as JwtPayload;
+    const decoded = jwt.verify(token,JWT_SECRET) as JwtPayload;
 
     const userId = decoded.userId;
 
