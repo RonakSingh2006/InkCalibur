@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { Auth } from "./middlewares/auth";
 import {JWT_SECRET} from "@repo/backend-common/config"
 import {AuthSchema,RoomSchema} from "@repo/common/schema"
+import {prisma} from "@repo/db/client"
 
 const app = express();
 
