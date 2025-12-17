@@ -3,11 +3,22 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Auth } from "./middlewares/auth";
+import {AuthSchema,RoomSchema} from "@repo/common/schema"
 
 const app = express();
 
 app.post("/signup", async (req, res) => {
-  const { username, password } = req.body;
+
+  const result = AuthSchema.safeParse(req.body);
+
+  if(!result.success){
+    return res.status(400).send({
+      message : "Incorrect Input",
+      error : result.error
+    })
+  }
+
+  const { username, password } = result.data;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -17,7 +28,16 @@ app.post("/signup", async (req, res) => {
 });
 
 app.post("/signin", async (req, res) => {
-  const { username, password } = req.body;
+  const result = AuthSchema.safeParse(req.body);
+
+  if(!result.success){
+    return res.status(400).send({
+      message : "Incorrect Input",
+      error : result.error
+    })
+  }
+
+  const { username, password } = result.data;
 
   // get saved password from db
   const passKey = "temp";
@@ -40,9 +60,18 @@ app.post("/signin", async (req, res) => {
 app.get("/room", Auth, (req : Request, res : Response) => {
   const userId = req.userId;
 
-  // do db calls
+  const result = RoomSchema.safeParse(req.body);
 
-  res.send("Joined room");
+  if(!result.success){
+    return res.status(400).send({
+      message : "Incorrect Input",
+      error : result.error
+    })
+  }
+
+  const {name} = result.data;
+
+  res.send("Joined room "+name);
 
 });
 
