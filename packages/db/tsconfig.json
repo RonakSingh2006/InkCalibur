@@ -1,3 +1,10 @@
 {
-  "extends" : "@repo/typescript-config/base.json"
+  "extends" : "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ESNEXT",
+    "strict": true,
+    "esModuleInterop": true
+  }
 }
