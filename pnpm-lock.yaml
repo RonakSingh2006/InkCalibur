@@ -20,6 +20,9 @@ importers:
 
   apps/http-server:
     dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -39,9 +42,6 @@ importers:
       '@repo/common':
         specifier: workspace:*
         version: link:../../packages/common
-      '@repo/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -91,6 +91,9 @@ importers:
 
   apps/ws-server:
     dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -107,9 +110,6 @@ importers:
       '@repo/common':
         specifier: workspace:*
         version: link:../../packages/common
-      '@repo/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config

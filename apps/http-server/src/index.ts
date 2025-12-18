@@ -24,7 +24,14 @@ app.post("/signup", async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Store to db
+  prisma.user.create({
+    data : {
+      username,
+      password,
+      name : "Ronak",
+      avatar : "avatar.png"
+    }
+  })
 
   res.send("Signed Up");
 });
