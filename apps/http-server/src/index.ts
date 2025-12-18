@@ -104,7 +104,7 @@ app.post("/signin", async (req, res) => {
 
 });
 
-app.get("/room", Auth, async (req : Request, res : Response) => {
+app.post("/room", Auth, async (req : Request, res : Response) => {
   
   const result = RoomSchema.safeParse(req.body);
   
@@ -122,6 +122,17 @@ app.get("/room", Auth, async (req : Request, res : Response) => {
   const {name} = result.data;
 
   try{
+
+    const valid = await prisma.room.findFirst({
+      where :{
+        slug : name
+      }
+    })
+
+    if(valid){
+      return res.status(409).send("Room Already exists");
+    }
+
     const room = await prisma.room.create({
       data : {
         slug : name,
