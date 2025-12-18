@@ -8,6 +8,7 @@ import {AuthSchema,RoomSchema,UserSchema} from "@repo/common/schema"
 import {prisma} from "@repo/db/client"
 
 const app = express();
+app.use(express.json());
 
 app.post("/signup", async (req, res) => {
 
@@ -24,15 +25,36 @@ app.post("/signup", async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
-    data : {
-      username,
-      password,
-      name : name
-    }
-  })
+  try{
 
-  res.send("Signed Up");
+    const check = await prisma.user.findFirst({
+      where : {username}
+    })
+
+    if(check){
+      return res.status(409).send("User already exsists");
+    }
+
+
+    const user = await prisma.user.create({
+      data : {
+        username,
+        password : hashedPassword,
+        name : name
+      }
+    })
+
+    res.send({
+      message : "Signed Up",
+      userId : user.id
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
 });
 
 app.post("/signin", async (req, res) => {
@@ -47,22 +69,39 @@ app.post("/signin", async (req, res) => {
 
   const { username, password } = result.data;
 
-  // get saved password from db
-  const passKey = "temp";
+  try{
+    const user = await prisma.user.findFirst({
+      where : {
+        username
+      }
+    });
 
-  const valid = await bcrypt.compare(password, passKey);
+    if(!user){
+      return res.status(404).send("user Does not exsists");
+    }
 
-  if (!valid) {
-    res.status(403).send("Invalid Password");
+    const passKey = user.password;
+
+    const valid = await bcrypt.compare(password, passKey);
+
+    if (!valid) {
+      return res.status(403).send("Invalid Password");
+    }
+
+    const id = user.id;
+
+    const token = jwt.sign({userId : id}, JWT_SECRET as string);
+  
+    res.send({ token });
+
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
   }
 
-  // get id from db
-
-  const id = "temp";
-
-  const token = jwt.sign({userId : id}, JWT_SECRET as string);
-
-  res.send({ token });
 });
 
 app.get("/room", Auth, (req : Request, res : Response) => {
