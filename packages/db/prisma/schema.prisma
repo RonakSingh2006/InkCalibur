@@ -12,7 +12,7 @@ model User{
   username  String     @unique
   password  String
   name      String
-  avatar    String
+  avatar    String?
 
   rooms Room[]
   chats Chat[]
