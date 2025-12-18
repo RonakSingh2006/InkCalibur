@@ -104,21 +104,43 @@ app.post("/signin", async (req, res) => {
 
 });
 
-app.get("/room", Auth, (req : Request, res : Response) => {
-  const userId = req.userId;
-
+app.get("/room", Auth, async (req : Request, res : Response) => {
+  
   const result = RoomSchema.safeParse(req.body);
-
+  
   if(!result.success){
     return res.status(400).send({
       message : "Incorrect Input",
       error : result.error
     })
   }
-
+  
+  const userId = req.userId;
+  if(!userId){
+    return res.status(403).send("Unauthorized");
+  }
   const {name} = result.data;
 
-  res.send("Joined room "+name);
+  try{
+    const room = await prisma.room.create({
+      data : {
+        slug : name,
+        adminId : userId
+      }
+    })
+
+    res.send({
+      message : "Room Created",
+      roomId : room.id
+    })
+
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
 
 });
 
