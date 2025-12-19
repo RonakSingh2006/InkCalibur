@@ -32,7 +32,7 @@ app.post("/signup", async (req, res) => {
     })
 
     if(check){
-      return res.status(409).send("User already exsists");
+      return res.status(409).send({message : "User already exsists"});
     }
 
 
@@ -77,7 +77,7 @@ app.post("/signin", async (req, res) => {
     });
 
     if(!user){
-      return res.status(404).send("user Does not exsists");
+      return res.status(404).send({message : "user Does not exsists"});
     }
 
     const passKey = user.password;
@@ -85,14 +85,14 @@ app.post("/signin", async (req, res) => {
     const valid = await bcrypt.compare(password, passKey);
 
     if (!valid) {
-      return res.status(403).send("Invalid Password");
+      return res.status(403).send({message : "Invalid Password"});
     }
 
     const id = user.id;
 
     const token = jwt.sign({userId : id}, JWT_SECRET as string);
   
-    res.send({ token });
+    res.send({message : "Signed Up", token });
 
   }
   catch(error){
@@ -117,7 +117,7 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
   
   const userId = req.userId;
   if(!userId){
-    return res.status(403).send("Unauthorized");
+    return res.status(403).send({message : "Unauthorized"});
   }
   const {name} = result.data;
 
@@ -130,7 +130,7 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
     })
 
     if(valid){
-      return res.status(409).send("Room Already exists");
+      return res.status(409).send({message : "Room Already exists"});
     }
 
     const room = await prisma.room.create({
@@ -164,7 +164,7 @@ app.get("/chats/:slug",async (req,res)=>{
     })
 
     if(!room){
-      res.status(404).send("Invalid room name");
+      res.status(404).send({message : "Invalid room name"});
     }
 
     const chats = await prisma.chat.findMany({
@@ -178,6 +178,7 @@ app.get("/chats/:slug",async (req,res)=>{
     })
 
     res.send({
+      message : "Chats loaded",
       chats
     })
   }
