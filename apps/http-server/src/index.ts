@@ -155,4 +155,39 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
 
 });
 
+app.get("/chats/:slug",async (req,res)=>{
+  const slug = req.params.slug;
+
+  try{
+    const room = await prisma.room.findFirst({
+      where : {slug}
+    })
+
+    if(!room){
+      res.status(404).send("Invalid room name");
+    }
+
+    const chats = await prisma.chat.findMany({
+      where : {
+        roomId : room?.id
+      },
+      orderBy : {
+        id : "desc"
+      },
+      take : 50
+    })
+
+    res.send({
+      chats
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
+  
+})
+
 app.listen(3001);
