@@ -6,9 +6,11 @@ import { Auth } from "./middlewares/auth";
 import {JWT_SECRET} from "@repo/backend-common/config"
 import {AuthSchema,RoomSchema,UserSchema} from "@repo/common/schema"
 import {prisma} from "@repo/db/client"
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/signup", async (req, res) => {
 
@@ -189,6 +191,26 @@ app.get("/chats/:slug",async (req,res)=>{
     });
   }
   
+})
+
+app.get("/roomId/:slug",async (req,res)=>{
+  const slug = req.params.slug;
+
+  try{
+    const room = await prisma.room.findFirst({
+      where : {slug}
+    })
+
+    res.send({
+      roomId : room?.id
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
 })
 
 app.listen(3001);

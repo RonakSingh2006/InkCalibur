@@ -78,20 +78,30 @@ wss.on('connection',(socket,req)=>{
       if(!roomsMap.get(roomId)) roomsMap.set(roomId,new Set());
 
       if(roomsMap.get(roomId)?.has(userId)){
-        socket.send("Already Connected");
+        socket.send(JSON.stringify({
+          type : "server_message",
+          message : "Already Connected"
+        }));
         return;
       }
 
       roomsMap.get(roomId)?.add(userId);
 
-      socket.send("Joined Room");
+      socket.send(JSON.stringify({
+          type : "server_message",
+          message : "Joined Room"
+        }));
     }
     else if(parsedData.type === "leave_room"){
       const roomId = parsedData.roomId;
 
       roomsMap.get(roomId)?.delete(userId);
 
-      socket.send("Leaved Room");
+      socket.send(JSON.stringify({
+          type : "server_message",
+          message : "Leaved Room"
+        }));
+
       socket.close();
 
     }
@@ -104,7 +114,7 @@ wss.on('connection',(socket,req)=>{
       if(!users) return;
 
       try{
-        await prisma.chat.create({
+        const dbMessage= await prisma.chat.create({
           data : {
             message,
             userId,
@@ -115,12 +125,19 @@ wss.on('connection',(socket,req)=>{
         users.forEach(u=>{
           const ws = socketMap.get(u);
 
-          ws?.send(message);
+          ws?.send(JSON.stringify({
+            type : "chat",
+            data : dbMessage
+          }));
+
         })
 
       }
       catch(err){
-        socket.send("DB ERROR");
+        socket.send(JSON.stringify({
+          type : "server_message",
+          message : "DB ERROR"
+        }));
         socket.close();
       }
     }
@@ -134,6 +151,9 @@ wss.on('connection',(socket,req)=>{
       users.delete(userId);
     })
 
-    socket.send("Disconnected");
+    socket.send(JSON.stringify({
+          type : "server_message",
+          message : "Disconnected"
+        }));
   })
 })

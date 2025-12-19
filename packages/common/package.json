@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "exports": {
-    "./schema": "./src/index.ts"
+    "./schema": "./src/index.ts",
+    "./config" : "./src/config.ts"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
