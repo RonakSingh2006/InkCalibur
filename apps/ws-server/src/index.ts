@@ -63,15 +63,9 @@ wss.on('connection',(socket,req)=>{
 
   socket.on('message',(data)=>{
 
-    if(typeof data !== "string"){
-      socket.close();
-      console.log("Invalid Data");
-      return;
-    }
-
     let parsedData: Message | Join_Leave;
     try {
-      parsedData = JSON.parse(data);
+      parsedData = JSON.parse(data.toString());
     } catch(error) {
       return;
     }
@@ -82,12 +76,22 @@ wss.on('connection',(socket,req)=>{
 
       if(!roomsMap.get(roomId)) roomsMap.set(roomId,new Set());
 
+      if(roomsMap.get(roomId)?.has(userId)){
+        socket.send("Already Connected");
+        return;
+      }
+
       roomsMap.get(roomId)?.add(userId);
+
+      socket.send("Joined Room");
     }
     else if(parsedData.type === "leave_room"){
       const roomId = parsedData.roomId;
 
       roomsMap.get(roomId)?.delete(userId);
+
+      socket.send("Leaved Room");
+      socket.close();
 
     }
     else if(parsedData.type === "chat"){
@@ -113,5 +117,7 @@ wss.on('connection',(socket,req)=>{
     roomsMap.forEach(users=>{
       users.delete(userId);
     })
+
+    socket.send("Disconnected");
   })
 })
