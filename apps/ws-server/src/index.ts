@@ -1,7 +1,8 @@
 import "dotenv/config"
 import { WebSocket, WebSocketServer } from "ws";
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import {JWT_SECRET} from "@repo/backend-common/config"
+import {prisma} from "@repo/db/client"
 
 const wss = new WebSocketServer({port : 8080});
 
@@ -26,16 +27,16 @@ function checkUser(token :string) : null | string{
 const socketMap = new Map<string,WebSocket>();
 
 // room -> users
-const roomsMap = new Map<string,Set<string>>();
+const roomsMap = new Map<number,Set<string>>();
 
 interface Join_Leave{
   type : "join_room" | "leave_room",
-  roomId : string
+  roomId : number
 }
 
 interface Message{
   type : "chat",
-  roomId : string,
+  roomId : number,
   message : string
 }
 
@@ -61,7 +62,7 @@ wss.on('connection',(socket,req)=>{
 
   socketMap.set(userId,socket);
 
-  socket.on('message',(data)=>{
+  socket.on('message',async (data)=>{
 
     let parsedData: Message | Join_Leave;
     try {
@@ -102,11 +103,26 @@ wss.on('connection',(socket,req)=>{
 
       if(!users) return;
 
-      users.forEach(u=>{
-        const ws = socketMap.get(u);
+      try{
+        await prisma.chat.create({
+          data : {
+            message,
+            userId,
+            roomId
+          }
+        })
 
-        ws?.send(message);
-      })
+        users.forEach(u=>{
+          const ws = socketMap.get(u);
+
+          ws?.send(message);
+        })
+
+      }
+      catch(err){
+        socket.send("DB ERROR");
+        socket.close();
+      }
     }
   })
 
