@@ -18,7 +18,7 @@ const variantMap = {
 
 export default function Button(props : ButtonProps){
   return <button 
-      className={`${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} transition ${props.className}`}
+      className={`${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} transition ${props.className} cursor-pointer`}
       onClick={props.onClick}
     >
           {props.text}

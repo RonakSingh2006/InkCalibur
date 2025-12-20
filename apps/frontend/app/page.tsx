@@ -1,3 +1,5 @@
+"use client"
+import Button from "@/components/Button";
 import Card from "@/components/Card";
 
 export default function Home() {
@@ -34,13 +36,9 @@ export default function Home() {
 
         <div className="mt-10 flex gap-4">
 
-          <button className="px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition font-medium">
-            Launch App
-          </button>
+          <Button variant="secondary" size="medium" text="Launch App" onClick={()=>{}}/>
 
-          <button className="px-6 py-3 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition">
-            View on GitHub
-          </button>
+          <Button variant="primary" size="medium" text="View on GitHub" onClick={()=>{}}/>
 
         </div>
       </section>
@@ -85,9 +83,8 @@ export default function Home() {
         <p className="mb-8 text-indigo-100">
           Open InkCalibur and start sketching instantly.
         </p>
-        <button className="px-8 py-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition font-semibold">
-          Open InkCalibur
-        </button>
+        
+        <Button variant="secondary" size="large" text="Open InkCalibur" onClick={()=>{}}/>
       </section>
 
 
