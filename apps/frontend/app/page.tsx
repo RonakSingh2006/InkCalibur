@@ -1,8 +1,12 @@
 "use client"
 import Button from "@/components/Button";
 import Card from "@/components/Card";
+import { useRouter } from "next/navigation";
+import checkUser from "@/lib/checkUser";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <main className="min-h-screen bg-linear-to-br from-black via-zinc-900 to-black text-white">
    
@@ -36,7 +40,14 @@ export default function Home() {
 
         <div className="mt-10 flex gap-4">
 
-          <Button variant="secondary" size="medium" text="Launch App" onClick={()=>{}}/>
+          <Button variant="secondary" size="medium" text="Launch App" onClick={async ()=>{
+
+            const check = await checkUser();
+
+            if(check) router.push("/dashboard");
+            else router.push("/signin");
+
+          }}/>
 
           <Button variant="primary" size="medium" text="View on GitHub" onClick={()=>{
             window.open("https://github.com/RonakSingh2006/InkCalibur","_blank");
@@ -86,7 +97,14 @@ export default function Home() {
           Open InkCalibur and start sketching instantly.
         </p>
         
-        <Button variant="secondary" size="large" text="Open InkCalibur" onClick={()=>{}}/>
+        <Button variant="secondary" size="large" text="Open InkCalibur" onClick={async ()=>{
+          
+            const check = await checkUser();
+
+            if(check) router.push("/dashboard");
+            else router.push("/signin");
+
+          }}/>
       </section>
 
 
