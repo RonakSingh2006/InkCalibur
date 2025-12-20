@@ -213,4 +213,10 @@ app.get("/roomId/:slug",async (req,res)=>{
   }
 })
 
+app.get("/me",Auth,(req,res)=>{
+  res.send({
+    message : "Authenticated"
+  })
+})
+
 app.listen(3001);
