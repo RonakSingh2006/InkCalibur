@@ -13,7 +13,7 @@ export default function SignUp(){
     </div>
 
     <div className="flex justify-center">
-      <Button variant="secondary" size="medium" text="Sign Up" className="mt-7 px-18 font-bold text-md" onClick={()=>{}}/>
+      <Button variant="secondary" size="medium" text="Sign Up" className="mt-7 px-18 font-bold text-md" auth={true} onClick={()=>{}}/>
     </div>
   </div>
 }

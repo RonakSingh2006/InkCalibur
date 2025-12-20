@@ -38,7 +38,9 @@ export default function Home() {
 
           <Button variant="secondary" size="medium" text="Launch App" onClick={()=>{}}/>
 
-          <Button variant="primary" size="medium" text="View on GitHub" onClick={()=>{}}/>
+          <Button variant="primary" size="medium" text="View on GitHub" onClick={()=>{
+            window.open("https://github.com/RonakSingh2006/InkCalibur","_blank");
+          }}/>
 
         </div>
       </section>

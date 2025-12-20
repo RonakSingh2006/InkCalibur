@@ -3,7 +3,8 @@ interface ButtonProps{
   size : "medium" | "large",
   className? : string,
   text : string,
-  onClick : ()=>void;
+  onClick : ()=>void,
+  auth? : boolean
 }
 
 const sizeMap = {
@@ -18,7 +19,7 @@ const variantMap = {
 
 export default function Button(props : ButtonProps){
   return <button 
-      className={`${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} transition ${props.className} cursor-pointer`}
+      className={`${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} transition ${props.className} cursor-pointer ${props.auth ? "w-72" : ""}`}
       onClick={props.onClick}
     >
           {props.text}
