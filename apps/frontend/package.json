@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/ui": "workspace:*",
+    "axios": "^1.13.2",
     "next": "16.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "@repo/ui":"workspace:*"
+    "@repo/common" : "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
