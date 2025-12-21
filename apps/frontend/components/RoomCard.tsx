@@ -37,7 +37,7 @@ export default function RoomCard({name , createdAt , onDelete} : {name : string 
     <div className="flex-2 flex justify-between items-center">
       <div className="text-blue-600">Created On : {getDate(createdAt)}</div>
       <Button variant="secondary" size="medium" onClick={()=>{
-        router.push(`room/${name}`)
+        router.push(`canvas/${name}`)
       }} text="Join"/>
     </div>
   </div>

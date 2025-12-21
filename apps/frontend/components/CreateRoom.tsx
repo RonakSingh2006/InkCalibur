@@ -69,7 +69,7 @@ export default function CreateRoom({closeRoom} : {closeRoom : ()=>void}){
                       headers : {"Authorization" : localStorage.getItem('token')}
                     }
                   );
-                  router.push(`/room/${roomData.name}`);
+                  router.push(`/canvas/${roomData.name}`);
                 }
                 catch(error){
                   if(axios.isAxiosError(error)){

@@ -66,7 +66,7 @@ export default function JoinRoom({closeRoom} : {closeRoom : ()=>void}){
                     `${BACKEND_URL}/roomId/${slug}`
                   );
 
-                  router.push(`/room/${roomData.name}`);
+                  router.push(`/canvas/${roomData.name}`);
 
                 }
                 catch(err){
