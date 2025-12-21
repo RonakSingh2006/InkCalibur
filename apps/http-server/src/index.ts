@@ -201,8 +201,12 @@ app.get("/roomId/:slug",async (req,res)=>{
       where : {slug}
     })
 
+    if(!room){
+      return res.status(404).send({message : "Room Does not exsists"});
+    }
+
     res.send({
-      roomId : room?.id
+      roomId : room.id
     })
   }
   catch(error){
