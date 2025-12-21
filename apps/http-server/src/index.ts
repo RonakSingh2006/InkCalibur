@@ -232,7 +232,7 @@ app.get("/rooms", Auth , async (req : Request,res)=>{
         adminId
       }
     })
-    
+
     res.send({
       rooms,
       message : "Sucessfully got data"
@@ -244,6 +244,31 @@ app.get("/rooms", Auth , async (req : Request,res)=>{
       error
     });
   }
+})
+
+app.delete("/room/:slug",Auth,async (req : Request,res)=>{
+  const slug = req.params.slug;
+  const userId = req.userId;
+
+  try{
+    await prisma.room.delete({
+      where : {
+        slug,
+        adminId : userId
+      }
+    })
+
+    res.send({
+      message : "Sucesss"
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
+
 })
 
 app.listen(3001);

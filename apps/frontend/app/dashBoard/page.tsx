@@ -87,7 +87,9 @@ export default function DashBoard() {
           </div>
         </div>
 
-        <Rooms rooms={rooms} />
+        <Rooms rooms={rooms} onDelete = {(slug)=>{
+          setRooms(prev => prev.filter((e)=>e.slug !== slug));
+        }}/>
       </div>
 
 
