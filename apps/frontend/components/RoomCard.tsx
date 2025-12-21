@@ -5,7 +5,7 @@ import Button from "./Button";
 
 export default function RoomCard({name , members} : {name : string , members : number}){
   return <div 
-  className="rounded-xl border border-zinc-800 bg-zinc-900 p-2 hover:border-indigo-500 transition w-80 h-56 flex flex-col justify-between">
+  className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 hover:border-indigo-500 transition w-80 h-56 flex flex-col justify-between">
     <button className="flex-1 flex justify-end" title="delete">
       <Delete className="text-red-500 cursor-pointer"/>
     </button>
@@ -14,7 +14,7 @@ export default function RoomCard({name , members} : {name : string , members : n
 
     <div className="flex-2 flex justify-between items-center">
       <div className="text-blue-600">Total Members : {members}</div>
-      <Button variant="secondary" size="medium" onClick={()=>{}} text="Join Room"/>
+      <Button variant="secondary" size="medium" onClick={()=>{}} text="Join"/>
     </div>
   </div>
 }
