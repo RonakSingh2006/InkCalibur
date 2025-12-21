@@ -223,4 +223,27 @@ app.get("/me",Auth,(req,res)=>{
   })
 })
 
+app.get("/rooms", Auth , async (req : Request,res)=>{
+  const adminId = req.userId;
+
+  try{
+    const rooms = await prisma.room.findMany({
+      where : {
+        adminId
+      }
+    })
+    
+    res.send({
+      rooms,
+      message : "Sucessfully got data"
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
+})
+
 app.listen(3001);

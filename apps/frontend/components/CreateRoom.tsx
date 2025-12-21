@@ -62,7 +62,7 @@ export default function CreateRoom({closeRoom} : {closeRoom : ()=>void}){
                 }
 
                 try{
-                  const response = await axios.post(
+                  await axios.post(
                     `${BACKEND_URL}/room`,
                     roomData,
                     {

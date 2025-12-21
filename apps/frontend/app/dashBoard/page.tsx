@@ -2,29 +2,57 @@
 
 import Button from "@/components/Button";
 import SearchBar from "@/components/Searchbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Rooms from "@/components/Rooms";
 import JoinRoom from "@/components/JoinRoom";
 import CreateRoom from "@/components/CreateRoom";
+import axios from "axios";
+import { BACKEND_URL } from "@repo/common/config";
+import { useRouter } from "next/navigation";
 
 interface Room {
   id: string;
   slug: string;
-  members: number;
+  createdAt : string,
+  adminId : string
+}
+
+async function getRooms() {
+  try{
+    const response = await axios.get(`${BACKEND_URL}/rooms`,{
+      headers : {"Authorization" : localStorage.getItem('token')}
+    })
+
+    return response.data.rooms;
+  }
+  
+  catch(error){
+    console.log(error);
+    return null;
+  }
 }
 
 export default function DashBoard() {
-  const [rooms, setRooms] = useState<Room[]>([
-    { id: "abc", slug: "DSA Practice", members: 4 },
-    { id: "abcd", slug: "System Design", members: 2 },
-    { id: "abcdd", slug: "DSA Practice", members: 4 },
-    { id: "abdd", slug: "System Design", members: 2 },
-    { id: "ac", slug: "DSA Practice", members: 4 },
-    { id: "acd", slug: "System Design", members: 2 },
-  ]);
-
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(()=>{
+    async function LoadData() {
+      const rooms = await getRooms();
+
+      if(rooms === null){
+        router.push("/signin");
+      }
+
+      setRooms(rooms);
+    }
+
+    LoadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
+
 
   return (
     <div>

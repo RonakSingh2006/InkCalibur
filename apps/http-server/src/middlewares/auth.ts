@@ -6,7 +6,9 @@ export function Auth(req : Request,res : Response,next : NextFunction){
   const token = req.headers["authorization"] || "";
 
   if(!token){
-    return res.status(401).send("Unauthorized");
+    return res.status(401).send({
+      message : "Unauthorized"
+    });
   }
 
   try{

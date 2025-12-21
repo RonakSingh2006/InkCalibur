@@ -62,7 +62,7 @@ export default function JoinRoom({closeRoom} : {closeRoom : ()=>void}){
                 }
 
                 try{
-                  const response = await axios.get(
+                  await axios.get(
                     `${BACKEND_URL}/roomId/${slug}`
                   );
 
