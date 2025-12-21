@@ -1,10 +1,13 @@
+import { ReactNode } from "react"
+
 interface ButtonProps{
   variant : "primary" | "secondary"
   size : "medium" | "large",
   className? : string,
   text : string,
   onClick : ()=>void,
-  auth? : boolean
+  auth? : boolean,
+  icon? : ReactNode
 }
 
 const sizeMap = {
@@ -19,9 +22,10 @@ const variantMap = {
 
 export default function Button(props : ButtonProps){
   return <button 
-      className={`${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} transition ${props.className} cursor-pointer ${props.auth ? "w-72" : ""}`}
+      className={`${props.className} ${sizeMap[props.size]} rounded-lg ${variantMap[props.variant]} text-white transition cursor-pointer ${props.auth ? "w-72" : ""}`}
       onClick={props.onClick}
     >
           {props.text}
+          {props.icon}
   </button>
 }
