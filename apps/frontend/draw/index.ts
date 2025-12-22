@@ -21,11 +21,8 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string){
   let startX:number = 0;
   let startY:number = 0;
   
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  
   render(shapes,ctx);
-  
+
   canvas.addEventListener("mousedown",(event)=>{
     draw = true;
     const posX = event.clientX;

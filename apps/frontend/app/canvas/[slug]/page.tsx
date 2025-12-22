@@ -1,27 +1,9 @@
-"use client"
-import { useEffect, useRef } from "react";
-import { initDraw } from "@/draw";
-import { useParams } from "next/navigation";
+import Canvas from "@/components/Canvas";
 
-export default function Canvas(){
+export default async function RoomCanvas({params} : {params : Promise<{slug : string}>}){
 
-  const convasRef = useRef<HTMLCanvasElement>(null);
-  const params = useParams();
+  const {slug} = await params;
 
-  const slug = params.slug as string;
-
-  useEffect(()=>{
-
-    const canvas = convasRef.current;
-
-    if(!canvas || !slug) return;
-
-    initDraw(canvas,slug);
-
-  },[convasRef,slug])
-
-  return <div>
-      <canvas className="bg-black" ref={convasRef}></canvas>
-  </div>
+  return <Canvas slug={slug}/>
 } 
 
