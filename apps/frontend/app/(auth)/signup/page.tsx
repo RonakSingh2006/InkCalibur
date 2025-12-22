@@ -62,12 +62,23 @@ export default function SignUp(){
           return;
         }
 
-        const response = await axios.post(`${BACKEND_URL}/signup`,user);
-
-        if(response.status === 200){
+        try{
+          await axios.post(`${BACKEND_URL}/signup`,user);
           router.push("/signin");
+          
         }
-        else console.log(response.data);
+        catch(err){
+          if(axios.isAxiosError(err)){
+            setErrors({
+              name: err.response?.data.message
+            })
+          }
+          else{
+            setErrors({
+              name: "Unexcpected Error"
+            })
+          }
+        }
 
       }}/>
     </div>

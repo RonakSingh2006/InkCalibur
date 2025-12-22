@@ -53,17 +53,23 @@ export default function SignIn(){
           return;
         }
 
-        const response = await axios.post(`${BACKEND_URL}/signin`,authData);
-
-        if(response.status === 200){
+        try{
+          const response = await axios.post(`${BACKEND_URL}/signin`,authData);
           const token = response.data.token;
-
           localStorage.setItem('token',token);
-
-          router.push("/dashboard")
+          router.push("/dashboard");
         }
-        else{
-          console.log(response.data);
+        catch(err){
+          if(axios.isAxiosError(err)){
+            setErrors({
+              username: err.response?.data.message
+            })
+          }
+          else{
+            setErrors({
+              username: "Unexcpected Error"
+            })
+          }
         }
         
 
