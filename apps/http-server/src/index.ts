@@ -157,7 +157,7 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
 
 });
 
-app.get("/chats/:slug",async (req,res)=>{
+app.get("/shapes/:slug",async (req,res)=>{
   const slug = req.params.slug;
 
   try{
@@ -169,18 +169,14 @@ app.get("/chats/:slug",async (req,res)=>{
       res.status(404).send({message : "Invalid room name"});
     }
 
-    const chats = await prisma.chat.findMany({
+    const chats = await prisma.shape.findMany({
       where : {
         roomId : room?.id
-      },
-      orderBy : {
-        id : "desc"
-      },
-      take : 50
+      }
     })
 
     res.send({
-      message : "Chats loaded",
+      message : "Shapes loaded",
       chats
     })
   }
