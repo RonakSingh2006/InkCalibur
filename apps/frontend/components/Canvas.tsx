@@ -5,6 +5,7 @@ import Square from "@/icons/Sqaure";
 import Circle from "@/icons/Circle";
 import Line from "@/icons/Line";
 import { useState } from "react";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 type Shape = "rectangle" | "circle" | "line";
 
@@ -13,6 +14,7 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
 
   const convasRef = useRef<HTMLCanvasElement>(null);
   const [shape,setShape] = useState<Shape>("rectangle");
+  const {size} = useWindowDimensions();
 
 
   useEffect(() => {
@@ -20,8 +22,8 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
 
     if (!canvas) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = size?.width;
+    canvas.height = size?.height;
 
     socket.send(JSON.stringify({
         type : "join_room",
@@ -29,7 +31,7 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
     }))
 
     initDraw(canvas, slug , socket , roomId);
-  }, [convasRef, slug, socket , roomId]);
+  }, [convasRef, slug, socket , roomId , size]);
 
   return (
     <div>
