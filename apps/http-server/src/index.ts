@@ -160,51 +160,6 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
 
 });
 
-// add Shape
-app.post("/shape/:slug",Auth,async (req : Request,res)=>{
-  const slug = req.params.slug;
-  const userId = req.userId;
-
-  if(!userId){
-    return res.status(403).send({message : "Unauthorized"});
-  }
-
-  const {type,posX,posY,data} = req.body;
-
-  try{
-    const room = await prisma.room.findFirst({
-      where : {slug}
-    })
-
-    if(!room){
-      return res.status(404).send({message : "Invalid room name"});
-    }
-
-    const roomId = room.id;
-
-    await prisma.shape.create({
-      data :{
-        type,
-        posX,
-        posY,
-        data,
-        userId,
-        roomId
-      }
-    })
-
-    res.send({
-      message : "Shapes added"
-    })
-  }
-  catch(error){
-    res.status(403).send({
-      message : "DB failure",
-      error
-    });
-  }
-})
-
 // Get Shapes
 app.get("/shapes/:slug",async (req,res)=>{
   const slug = req.params.slug;
