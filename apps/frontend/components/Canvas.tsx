@@ -1,23 +1,30 @@
-"use client"
+"use client";
 import { useEffect, useRef } from "react";
 import { initDraw } from "@/draw";
 
-export default function Canvas({slug} : {slug : string}){
-    const convasRef = useRef<HTMLCanvasElement>(null);
-    useEffect(()=>{
 
+export default function Canvas({ slug , socket , roomId}: { slug: string , socket : WebSocket , roomId : number}) {
+
+  const convasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
     const canvas = convasRef.current;
 
-    if(!canvas) return;
+    if (!canvas) return;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    initDraw(canvas,slug);
+    socket.send(JSON.stringify({
+        type : "join_room",
+        roomId : roomId
+    }))
 
-  },[convasRef,slug])
+    initDraw(canvas, slug , socket , roomId);
+  }, [convasRef, slug, socket , roomId]);
 
-  return <div>
+  return (
+    <div>
       <canvas className="bg-black" ref={convasRef}></canvas>
-  </div>
+    </div>
+  );
 }

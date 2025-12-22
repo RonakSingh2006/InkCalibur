@@ -9,7 +9,7 @@ interface Shape {
 }
 
 
-export async function initDraw(canvas : HTMLCanvasElement , slug : string){
+export async function initDraw(canvas : HTMLCanvasElement , slug : string , socket : WebSocket , roomId : number){
 
   const shapes : Shape[] = await getAllShapes(slug);
 
@@ -22,6 +22,19 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string){
   let startY:number = 0;
   
   render(shapes,ctx);
+
+
+  socket.onmessage = (event)=>{
+    const parsedData = JSON.parse(event.data);
+
+    if(parsedData.type === "shape"){
+      const s:Shape = parsedData.shape;
+
+      shapes.push(s);
+
+      render(shapes,ctx);
+    }
+  }
 
   canvas.addEventListener("mousedown",(event)=>{
     draw = true;
@@ -63,18 +76,11 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string){
       })
     }
 
-    shapes.push(s);
-
-    try{
-      await axios.post(`${BACKEND_URL}/shape/${slug}`,s,{
-        headers : {"Authorization" : localStorage.getItem('token')}
-      });
-    }
-    catch(error){
-      console.log(error);
-    }
-    
-    render(shapes,ctx);
+    socket.send(JSON.stringify({
+      type : "add_shape",
+      roomId : roomId,
+      shape : s
+    }))
 
   });
 }

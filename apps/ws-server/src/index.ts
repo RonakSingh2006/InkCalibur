@@ -34,10 +34,17 @@ interface Join_Leave{
   roomId : number
 }
 
-interface Message{
-  type : "chat",
+interface Shape {
+  type : "circle" | "line" | "rectangle",
+  posX  : number,
+  posY  : number
+  data  : string
+}
+
+interface Task{
+  type : "add_shape",
   roomId : number,
-  message : string
+  shape : Shape
 }
 
 wss.on('connection',(socket,req)=>{
@@ -64,7 +71,7 @@ wss.on('connection',(socket,req)=>{
 
   socket.on('message',async (data)=>{
 
-    let parsedData: Message | Join_Leave;
+    let parsedData: Task | Join_Leave;
     try {
       parsedData = JSON.parse(data.toString());
     } catch(error) {
@@ -105,18 +112,21 @@ wss.on('connection',(socket,req)=>{
       socket.close();
 
     }
-    else if(parsedData.type === "chat"){
+    else if(parsedData.type === "add_shape"){
       const roomId = parsedData.roomId;
-      const message = parsedData.message;
+      const s:Shape = parsedData.shape;
 
       const users = roomsMap.get(roomId);
 
       if(!users) return;
 
       try{
-        const dbMessage= await prisma.chat.create({
-          data : {
-            message,
+        const dbShape= await prisma.shape.create({
+          data :{
+            type : s.type,
+            posX : s.posX,
+            posY : s.posY,
+            data : s.data,
             userId,
             roomId
           }
@@ -126,8 +136,8 @@ wss.on('connection',(socket,req)=>{
           const ws = socketMap.get(u);
 
           ws?.send(JSON.stringify({
-            type : "chat",
-            data : dbMessage
+            type : "shape",
+            data : dbShape
           }));
 
         })
