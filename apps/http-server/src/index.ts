@@ -166,18 +166,18 @@ app.get("/shapes/:slug",async (req,res)=>{
     })
 
     if(!room){
-      res.status(404).send({message : "Invalid room name"});
+      return res.status(404).send({message : "Invalid room name"});
     }
 
-    const chats = await prisma.shape.findMany({
+    const shapes = await prisma.shape.findMany({
       where : {
-        roomId : room?.id
+        roomId : room.id
       }
     })
 
     res.send({
       message : "Shapes loaded",
-      chats
+      shapes
     })
   }
   catch(error){
