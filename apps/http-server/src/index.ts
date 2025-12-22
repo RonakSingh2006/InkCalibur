@@ -12,6 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Sign In
 app.post("/signup", async (req, res) => {
 
   const result = UserSchema.safeParse(req.body);
@@ -59,6 +60,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// Sign Up
 app.post("/signin", async (req, res) => {
   const result = AuthSchema.safeParse(req.body);
 
@@ -106,6 +108,7 @@ app.post("/signin", async (req, res) => {
 
 });
 
+// Create Room
 app.post("/room", Auth, async (req : Request, res : Response) => {
   
   const result = RoomSchema.safeParse(req.body);
@@ -157,6 +160,52 @@ app.post("/room", Auth, async (req : Request, res : Response) => {
 
 });
 
+// add Shape
+app.post("/shape/:slug",Auth,async (req : Request,res)=>{
+  const slug = req.params.slug;
+  const userId = req.userId;
+
+  if(!userId){
+    return res.status(403).send({message : "Unauthorized"});
+  }
+
+  const {type,posX,posY,data} = req.body;
+
+  try{
+    const room = await prisma.room.findFirst({
+      where : {slug}
+    })
+
+    if(!room){
+      return res.status(404).send({message : "Invalid room name"});
+    }
+
+    const roomId = room.id;
+
+    await prisma.shape.create({
+      data :{
+        type,
+        posX,
+        posY,
+        data,
+        userId,
+        roomId
+      }
+    })
+
+    res.send({
+      message : "Shapes added"
+    })
+  }
+  catch(error){
+    res.status(403).send({
+      message : "DB failure",
+      error
+    });
+  }
+})
+
+// Get Shapes
 app.get("/shapes/:slug",async (req,res)=>{
   const slug = req.params.slug;
 
@@ -189,6 +238,7 @@ app.get("/shapes/:slug",async (req,res)=>{
   
 })
 
+// Get Room according to slug
 app.get("/roomId/:slug",async (req,res)=>{
   const slug = req.params.slug;
 
@@ -213,12 +263,14 @@ app.get("/roomId/:slug",async (req,res)=>{
   }
 })
 
+// check user
 app.get("/me",Auth,(req,res)=>{
   res.send({
     message : "Authenticated"
   })
 })
 
+// get rooms
 app.get("/rooms", Auth , async (req : Request,res)=>{
   const adminId = req.userId;
 
@@ -242,6 +294,7 @@ app.get("/rooms", Auth , async (req : Request,res)=>{
   }
 })
 
+// delete room
 app.delete("/room/:slug",Auth,async (req : Request,res)=>{
   const slug = req.params.slug;
   const userId = req.userId;
