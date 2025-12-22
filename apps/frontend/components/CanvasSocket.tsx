@@ -1,3 +1,4 @@
+"use client"
 import { useSocket } from "@/hooks/useSocket";
 import Canvas from "./Canvas";
 

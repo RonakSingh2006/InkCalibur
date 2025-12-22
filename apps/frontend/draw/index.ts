@@ -28,7 +28,7 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string , sock
     const parsedData = JSON.parse(event.data);
 
     if(parsedData.type === "shape"){
-      const s:Shape = parsedData.shape;
+      const s:Shape = parsedData.data;
 
       shapes.push(s);
 
