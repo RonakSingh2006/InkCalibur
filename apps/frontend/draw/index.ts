@@ -63,15 +63,19 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string , sock
       }
     }
     else if(currShape === "circle"){
-      const radiusX = Math.abs((posX - startX)/2);
-      const radiusY = Math.abs((posY - startY)/2);
-      const centerX = startX + (posX - startX)/2;
-      const centerY = startY + (posY - startY)/2;
+      const dx = posX - startX;
+      const dy = posY - startY;
+
+      const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
+      const radiusY = radiusX * 0.6; 
+      const centerX = startX + dx/2;
+      const centerY = startY + dy/2;
+      const angle = Math.atan2(dy,dx);
 
       if(draw){
         render(shapes,ctx);
         ctx.beginPath();
-        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        ctx.ellipse(centerX, centerY, radiusX, radiusY, angle, 0, 2 * Math.PI);
         ctx.stroke();
       }
     }
@@ -116,16 +120,21 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string , sock
       }))
     }
     else if(currShape === "circle"){
-      const radiusX = Math.abs((posX - startX)/2);
-      const radiusY = Math.abs((posY - startY)/2);
-      const centerX = startX + (posX - startX)/2;
-      const centerY = startY + (posY - startY)/2;
+      const dx = posX - startX;
+      const dy = posY - startY;
+
+      const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
+      const radiusY = radiusX * 0.6; 
+      const centerX = startX + dx/2;
+      const centerY = startY + dy/2;
+      const angle = Math.atan2(dy,dx);
 
       const s:Shape = {
         type : "circle",
         posX : centerX,
         posY : centerY,
         data : JSON.stringify({
+          angle,
           radiusX,
           radiusY
         })
@@ -172,7 +181,7 @@ function render(shapes : Shape[] , ctx : CanvasRenderingContext2D){
       const data = JSON.parse(s.data);
 
       ctx.beginPath();
-      ctx.ellipse(s.posX, s.posY, data.radiusX, data.radiusY, 0, 0, 2 * Math.PI);
+      ctx.ellipse(s.posX, s.posY, data.radiusX, data.radiusY, data.angle, 0, 2 * Math.PI);
       ctx.stroke();
     }
     else if(s.type === "line"){
