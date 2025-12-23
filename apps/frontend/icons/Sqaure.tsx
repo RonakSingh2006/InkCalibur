@@ -1,11 +1,11 @@
-export default function Square({size,color} : {size : number , color : string}) {
+export default function Square({ size, color }: { size: number; color: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100">
       <rect
-        x="10"
-        y="10"
-        width="80"
-        height="80"
+        x="15"
+        y="15"
+        width="70"
+        height="70"
         fill="none"
         stroke={color}
         strokeWidth="10"

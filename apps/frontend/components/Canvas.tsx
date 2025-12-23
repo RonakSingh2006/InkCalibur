@@ -54,10 +54,10 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
 
   return (
     <div>
-      <canvas className="bg-black" ref={convasRef}></canvas>
+      <canvas className={`bg-black ${shape === "hand" ? "cursor-pointer" : "cursor-crosshair"}`} ref={convasRef}></canvas>
 
-      <div className="fixed top-5 w-screen flex justify-end pr-10">
-        <div className="flex gap-5 p-3 rounded bg-zinc-900">
+      <div className="fixed top-5 w-screen flex justify-end pr-10 pointer-events-none">
+        <div className="flex gap-3 p-1 pl-3 rounded-md bg-zinc-900 pointer-events-auto">
 
           <button className="cursor-pointer" title="rectangle" onClick={()=>{
             setShape("rectangle");
@@ -65,7 +65,7 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
             <Square size={30} color={`${shape === "rectangle" ? "green" : "white"}`}/>
           </button>
 
-          <button className="cursor-pointer" title="circle" onClick={()=>{
+          <button className="cursor-pointer m-2" title="circle" onClick={()=>{
             setShape("circle");
           }}>
             <Circle size={30} color={`${shape === "circle" ? "green" : "white"}`}/>
