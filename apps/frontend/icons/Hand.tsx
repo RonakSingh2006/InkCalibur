@@ -1,6 +1,6 @@
 export default function Hand({size , color} : {size : number , color : string}) {
   return (
-    <svg width="100" height="100" viewBox="0 0 100 100">
+    <svg width={size} height={size} viewBox="0 0 100 100">
       <path
         d="
           M30 55
@@ -27,7 +27,7 @@ export default function Hand({size , color} : {size : number , color : string}) 
         "
         fill="none"
         stroke={color}
-        strokeWidth={size}
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

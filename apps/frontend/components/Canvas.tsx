@@ -74,7 +74,7 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
           <button className="cursor-pointer" title="ellipse" onClick={()=>{
             setShape("ellipse");
           }}>
-            <Ellipse size={30} color={`${shape === "ellipse" ? "green" : "white"}`}/>
+            <Ellipse size={60} color={`${shape === "ellipse" ? "green" : "white"}`}/>
           </button>
 
           <button className="cursor-pointer" title="line" onClick={()=>{
@@ -86,13 +86,13 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
           <button className="cursor-pointer" title="pencil" onClick={()=>{
             setShape("pencil");
           }}>
-            <Pencil size={30} color={`${shape === "pencil" ? "green" : "white"}`}/>
+            <Pencil size={60} color={`${shape === "pencil" ? "green" : "white"}`}/>
           </button>
 
           <button className="cursor-pointer" title="hand" onClick={()=>{
             setShape("hand");
           }}>
-            <Hand size={30} color={`${shape === "hand" ? "green" : "white"}`}/>
+            <Hand size={60} color={`${shape === "hand" ? "green" : "white"}`}/>
           </button>
 
         </div>

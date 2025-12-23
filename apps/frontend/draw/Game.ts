@@ -1,8 +1,9 @@
 import { BACKEND_URL } from "@repo/common/config";
 import axios from "axios";
+import { drawEllipse, drawPencil } from "./draw";
 
 interface Shape {
-  type: "circle" | "line" | "rectangle";
+  type: "circle" | "line" | "rectangle" | "ellipse" | "pencil";
   posX: number;
   posY: number;
   data: string;
@@ -21,6 +22,7 @@ export class Game {
   private startY: number;
   private currTool: tool;
   private draw: boolean;
+  private points : {x : number , y : number}[];
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -38,6 +40,7 @@ export class Game {
     this.shapes = [];
     this.startX = 0;
     this.startY = 0;
+    this.points = [];
 
     this.init();
     this.initHandlers();
@@ -63,10 +66,10 @@ export class Game {
     };
   }
 
-  initHandlers(){
-    this.canvas.addEventListener("mousedown",this.handleMouseDown);
-    this.canvas.addEventListener("mousemove",this.handlemouseMove);
-    this.canvas.addEventListener("mouseup",this.handlemouseUp);
+  initHandlers() {
+    this.canvas.addEventListener("mousedown", this.handleMouseDown);
+    this.canvas.addEventListener("mousemove", this.handlemouseMove);
+    this.canvas.addEventListener("mouseup", this.handlemouseUp);
   }
 
   render() {
@@ -78,7 +81,8 @@ export class Game {
 
         this.ctx.strokeStyle = "white";
         this.ctx.strokeRect(s.posX, s.posY, data.width, data.height);
-      } else if (s.type === "circle") {
+      } else if (s.type === "ellipse") {
+
         const data = JSON.parse(s.data);
 
         this.ctx.beginPath();
@@ -92,6 +96,7 @@ export class Game {
           2 * Math.PI
         );
         this.ctx.stroke();
+
       } else if (s.type === "line") {
         const data = JSON.parse(s.data);
 
@@ -99,6 +104,26 @@ export class Game {
         this.ctx.moveTo(s.posX, s.posY);
         this.ctx.lineTo(data.endPointX, data.endPointY);
         this.ctx.stroke();
+      }
+      else if(s.type === "circle"){
+        const data = JSON.parse(s.data);
+
+        this.ctx.beginPath();
+        this.ctx.ellipse(
+          s.posX,
+          s.posY,
+          data.radiusX,
+          data.radiusY,
+          0,
+          0,
+          2 * Math.PI
+        );
+        this.ctx.stroke();
+      }
+      else if(s.type === "pencil"){
+        const data = JSON.parse(s.data);
+
+        drawPencil(s.posX,s.posY,this.ctx,data.points);
       }
     });
   }
@@ -109,6 +134,8 @@ export class Game {
     const mousePos = this.getMousePos(event);
     this.startX = mousePos.x;
     this.startY = mousePos.y;
+
+    this.points.push({x : this.startX , y : this.startY});
 
     this.ctx.strokeStyle = "white";
   };
@@ -127,32 +154,42 @@ export class Game {
       const h = posY - this.startY;
 
       this.ctx.strokeRect(this.startX, this.startY, w, h);
-    } else if (this.currTool === "circle") {
-      const dx = posX - this.startX;
-      const dy = posY - this.startY;
+    } else if (this.currTool === "ellipse") {
 
-      const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
-      const radiusY = radiusX * 0.6;
-      const centerX = this.startX + dx / 2;
-      const centerY = this.startY + dy / 2;
-      const angle = Math.atan2(dy, dx);
+      const props = {
+        startX: this.startX,
+        startY: this.startY,
+        posX,
+        posY,
+        ctx: this.ctx,
+      };
 
-      this.ctx.beginPath();
-      this.ctx.ellipse(
-        centerX,
-        centerY,
-        radiusX,
-        radiusY,
-        angle,
-        0,
-        2 * Math.PI
-      );
-      this.ctx.stroke();
+      drawEllipse(props);
+
     } else if (this.currTool === "line") {
       this.ctx.beginPath();
       this.ctx.moveTo(this.startX, this.startY);
       this.ctx.lineTo(posX, posY);
       this.ctx.stroke();
+    }
+    else if(this.currTool === "circle"){
+      const dx = posX - this.startX;
+      const dy = posY - this.startY;
+
+      const radiusX = Math.abs(dx)/2;
+      const radiusY = Math.abs(dy)/2;
+
+      const centerX = this.startX + dx/2;
+      const centerY = this.startY + dy/2;
+
+      this.ctx.beginPath();
+      this.ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+      this.ctx.stroke();
+    }
+    else if(this.currTool === "pencil"){
+      this.points.push({x : posX , y : posY});
+
+      drawPencil(this.startX , this.startY , this.ctx , this.points);
     }
   };
 
@@ -178,18 +215,21 @@ export class Game {
           height: h,
         }),
       };
-    } else if (this.currTool === "circle") {
-      const dx = posX - this.startX;
-      const dy = posY - this.startY;
 
-      const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
-      const radiusY = radiusX * 0.6;
-      const centerX = this.startX + dx / 2;
-      const centerY = this.startY + dy / 2;
-      const angle = Math.atan2(dy, dx);
+    } else if (this.currTool === "ellipse") {
+
+      const props = {
+        startX: this.startX,
+        startY: this.startY,
+        posX,
+        posY,
+        ctx: this.ctx,
+      };
+
+      const {radiusX,radiusY,centerX,centerY,angle} = drawEllipse(props);
 
       s = {
-        type: "circle",
+        type: "ellipse",
         posX: centerX,
         posY: centerY,
         data: JSON.stringify({
@@ -198,6 +238,7 @@ export class Game {
           radiusY,
         }),
       };
+
     } else if (this.currTool === "line") {
       s = {
         type: "line",
@@ -209,6 +250,37 @@ export class Game {
         }),
       };
     }
+    else if(this.currTool === "circle"){
+      const dx = posX - this.startX;
+      const dy = posY - this.startY;
+
+      const radiusX = Math.abs(dx)/2;
+      const radiusY = Math.abs(dy)/2;
+
+      const centerX = this.startX + dx/2;
+      const centerY = this.startY + dy/2;
+
+      s = {
+        type : "circle",
+        posX : centerX,
+        posY : centerY,
+        data : JSON.stringify({
+          radiusX,
+          radiusY
+        })
+      }
+    }
+    else if(this.currTool === "pencil"){
+      s = {
+        type : "pencil",
+        posX : this.startX,
+        posY : this.startY,
+        data : JSON.stringify({points : this.points})
+      }
+    }
+
+    this.points = [];
+
 
     if (s) {
       this.socket.send(
@@ -220,8 +292,6 @@ export class Game {
       );
     }
   };
-
-
 
   getMousePos(e: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
