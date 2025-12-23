@@ -17,6 +17,12 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
   const {size} = useWindowDimensions();
 
 
+  useEffect(()=>{
+    // @ts-ignore
+    window.selectedShape = shape;
+  },[shape])
+
+
   useEffect(() => {
     const canvas = convasRef.current;
 

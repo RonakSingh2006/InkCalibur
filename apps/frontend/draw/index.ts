@@ -37,6 +37,8 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string , sock
   }
 
   canvas.addEventListener("mousedown",(event)=>{
+    const currShape = window.selectedShape;
+
     draw = true;
     const posX = event.clientX;
     const posY = event.clientY;
@@ -45,43 +47,113 @@ export async function initDraw(canvas : HTMLCanvasElement , slug : string , sock
   });
 
   canvas.addEventListener("mousemove",(event)=>{
+    const currShape = window.selectedShape;
+
     const posX = event.clientX;
     const posY = event.clientY;
 
-    const w = posX - startX;
-    const h = posY - startY;
+    if(currShape === "rectangle"){
+      const w = posX - startX;
+      const h = posY - startY;
 
-    if(draw){
-      render(shapes,ctx);
-      ctx.strokeStyle = "white";
-      ctx.strokeRect(startX,startY,w,h);
+      if(draw){
+        render(shapes,ctx);
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(startX,startY,w,h);
+      }
     }
+    else if(currShape === "circle"){
+      const radiusX = Math.abs((posX - startX)/2);
+      const radiusY = Math.abs((posY - startY)/2);
+      const centerX = startX + (posX - startX)/2;
+      const centerY = startY + (posY - startY)/2;
+
+      if(draw){
+        render(shapes,ctx);
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
+    }
+    else if(currShape === "line"){
+      if(draw){
+        render(shapes,ctx);
+
+        ctx.beginPath();
+        ctx.moveTo(startX,startY);
+        ctx.lineTo(posX,posY);
+        ctx.stroke();
+      }
+    }
+    
   });
 
   canvas.addEventListener("mouseup",async (event)=>{
+    const currShape = window.selectedShape;
     draw = false;
     const posX = event.clientX;
     const posY = event.clientY;
 
-    const w = posX - startX;
-    const h = posY - startY;
+    if(currShape === "rectangle"){
+      const w = posX - startX;
+      const h = posY - startY;
 
-    const s:Shape = {
-      type : "rectangle",
-      posX : startX,
-      posY : startY,
-      data : JSON.stringify({
-        width : w,
-        height : h
-      })
+      const s:Shape = {
+        type : "rectangle",
+        posX : startX,
+        posY : startY,
+        data : JSON.stringify({
+          width : w,
+          height : h
+        })
+      }
+
+
+      socket.send(JSON.stringify({
+        type : "add_shape",
+        roomId : roomId,
+        shape : s
+      }))
     }
+    else if(currShape === "circle"){
+      const radiusX = Math.abs((posX - startX)/2);
+      const radiusY = Math.abs((posY - startY)/2);
+      const centerX = startX + (posX - startX)/2;
+      const centerY = startY + (posY - startY)/2;
 
-    socket.send(JSON.stringify({
-      type : "add_shape",
-      roomId : roomId,
-      shape : s
-    }))
+      const s:Shape = {
+        type : "circle",
+        posX : centerX,
+        posY : centerY,
+        data : JSON.stringify({
+          radiusX,
+          radiusY
+        })
+      }
 
+      socket.send(JSON.stringify({
+        type : "add_shape",
+        roomId : roomId,
+        shape : s
+      }))
+    }
+    else if(currShape === "line"){
+      const s:Shape = {
+        type : "line",
+        posX : startX,
+        posY : startY,
+        data : JSON.stringify({
+          endPointX : posX,
+          endPointY : posY
+        })
+      }
+
+      socket.send(JSON.stringify({
+        type : "add_shape",
+        roomId : roomId,
+        shape : s
+      }))
+    }
   });
 }
 
@@ -94,6 +166,22 @@ function render(shapes : Shape[] , ctx : CanvasRenderingContext2D){
 
       ctx.strokeStyle = "white";
       ctx.strokeRect(s.posX,s.posY,data.width,data.height);
+    }
+    else if(s.type === "circle"){
+
+      const data = JSON.parse(s.data);
+
+      ctx.beginPath();
+      ctx.ellipse(s.posX, s.posY, data.radiusX, data.radiusY, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    else if(s.type === "line"){
+      const data = JSON.parse(s.data);
+
+      ctx.beginPath();
+      ctx.moveTo(s.posX,s.posY);
+      ctx.lineTo(data.endPointX,data.endPointY);
+      ctx.stroke();
     }
   })
 }
