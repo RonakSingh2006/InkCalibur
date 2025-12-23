@@ -6,8 +6,11 @@ import Circle from "@/icons/Circle";
 import Line from "@/icons/Line";
 import { useState } from "react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import Ellipse from "@/icons/Ellipse";
+import Pencil from "@/icons/Pencil";
+import Hand from "@/icons/Hand";
 
-type Shape = "rectangle" | "circle" | "line";
+type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
 
 
 export default function Canvas({ slug , socket , roomId}: { slug: string , socket : WebSocket , roomId : number}) {
@@ -68,10 +71,28 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
             <Circle size={30} color={`${shape === "circle" ? "green" : "white"}`}/>
           </button>
 
+          <button className="cursor-pointer" title="ellipse" onClick={()=>{
+            setShape("ellipse");
+          }}>
+            <Ellipse size={30} color={`${shape === "ellipse" ? "green" : "white"}`}/>
+          </button>
+
           <button className="cursor-pointer" title="line" onClick={()=>{
             setShape("line");
           }}>
             <Line size={30} color={`${shape === "line" ? "green" : "white"}`}/>
+          </button>
+
+          <button className="cursor-pointer" title="pencil" onClick={()=>{
+            setShape("pencil");
+          }}>
+            <Pencil size={30} color={`${shape === "pencil" ? "green" : "white"}`}/>
+          </button>
+
+          <button className="cursor-pointer" title="hand" onClick={()=>{
+            setShape("hand");
+          }}>
+            <Hand size={30} color={`${shape === "hand" ? "green" : "white"}`}/>
           </button>
 
         </div>

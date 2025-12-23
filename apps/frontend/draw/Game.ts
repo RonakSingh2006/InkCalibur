@@ -8,7 +8,7 @@ interface Shape {
   data: string;
 }
 
-type tool = "circle" | "rectangle" | "line";
+type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
 
 export class Game {
   private canvas: HTMLCanvasElement;
