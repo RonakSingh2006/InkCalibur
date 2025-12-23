@@ -1,135 +1,198 @@
-# Turborepo starter
+# ✨ InkCalibur
 
-This Turborepo starter is maintained by the Turborepo core team.
+**InkCalibur** is a full-stack, real-time collaborative drawing application inspired by tools like Excalidraw.  
+It is built as a **scalable monorepo** using **Turborepo** and **pnpm**, enabling clean separation of concerns, shared tooling, and efficient development workflows.
 
-## Using this example
+The project combines a modern **Next.js frontend**, an **Express-based HTTP API**, and a **WebSocket server** for real-time collaboration — all powered by **PostgreSQL** via **Prisma ORM**.
 
-Run the following command:
+---
+
+## 🧠 Key Features
+
+- 🖊️ Real-time collaborative canvas using WebSockets  
+- 👥 Multi-room support with live updates  
+- 🔐 Authentication with JWT & bcrypt  
+- 📦 Fully type-safe shared contracts (Zod + TypeScript)  
+- 🧩 Modular monorepo architecture  
+- ⚡ Optimized builds & caching with Turborepo  
+
+---
+
+## 🏗️ Monorepo Structure
+
+The repository is organized into **apps** and **shared packages**, managed via workspace filtering.
+
+```
+InkCalibur/
+├── apps/
+│   ├── frontend/          # Next.js client
+│   ├── http-server/       # REST API (Express)
+│   └── ws-server/         # WebSocket server
+│
+├── packages/
+│   ├── db/                # Prisma + PostgreSQL
+│   ├── common/            # Shared types, Zod schemas, config
+│   ├── backend-common/    # Shared backend utilities
+│   ├── ui/                # Shared React component library
+│   ├── eslint-config/     # Shared ESLint config
+│   └── typescript-config/ # Shared TS config
+│
+├── turbo. json
+├── pnpm-workspace.yaml
+└── package. json
+```
+
+---
+
+## 📦 Applications (`apps/`)
+
+### `frontend`
+- **Framework**: Next.js (v16.1.0)
+- **UI**: React 19, Tailwind CSS
+- **Networking**:  Axios, WebSockets
+- **Purpose**: Canvas UI, rooms, authentication, real-time drawing
+
+### `http-server`
+- **Framework**: Express.js
+- **Auth**: JWT, bcryptjs
+- **Purpose**: REST APIs, auth, room management, persistence
+
+### `ws-server`
+- **Runtime**: Node.js
+- **Library**: `ws`
+- **Purpose**: Real-time collaboration, live drawing sync, room broadcasts
+
+---
+
+## 📚 Shared Packages (`packages/`)
+
+- **`@repo/db`**  
+  Prisma client, schema, migrations, PostgreSQL connection
+
+- **`@repo/common`**  
+  Shared TypeScript types, Zod schemas, constants
+
+- **`@repo/backend-common`**  
+  Shared backend utilities (auth helpers, config)
+
+- **`@repo/ui`**  
+  Reusable React UI components
+
+- **`@repo/eslint-config`** & **`@repo/typescript-config`**  
+  Centralized linting and TypeScript standards
+
+---
+
+## 🛠️ Tech Stack
+
+- **Monorepo**: Turborepo  
+- **Package Manager**: pnpm  
+- **Frontend**: Next.js, React, Tailwind CSS  
+- **Backend**: Node.js, Express, WebSockets  
+- **Database**: PostgreSQL  
+- **ORM**:  Prisma  
+- **Language**:  TypeScript  
+
+---
+
+## 🏁 Getting Started
+
+### Prerequisites
+
+- Node.js **>= 18**
+- pnpm (global)
 
 ```sh
-npx create-turbo@latest
+npm install -g pnpm
 ```
 
-## What's inside?
+### Installation
 
-This Turborepo includes the following packages/apps:
+1. Clone the repository:
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```sh
+git clone https://github.com/your-username/InkCalibur.git
+cd InkCalibur
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+2. Install dependencies:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```sh
+pnpm install
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## 🚧 Development
 
-```
-cd my-turborepo
+### Run all apps (recommended)
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```sh
+pnpm dev
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Run a specific app
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```sh
+pnpm turbo dev --filter=frontend
+pnpm turbo dev --filter=http-server
+pnpm turbo dev --filter=ws-server
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## 🗄️ Database Setup
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Prisma is managed inside `packages/db`
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+1. Create a `.env` file (root or `packages/db`) with:
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/inkcalibur
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+2. Run migrations:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```sh
+pnpm turbo run prisma:migrate
 ```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
+## 📜 Scripts
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+Available from the root: 
+
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start all apps in dev mode |
+| `pnpm build` | Build all apps & packages |
+| `pnpm lint` | Run ESLint across repo |
+| `pnpm format` | Format with Prettier |
+| `pnpm check-types` | TypeScript type checking |
+
+---
+
+## 🚀 Future Enhancements
+
+- 🎨 Advanced shape tools & freehand drawing
+- 📡 Presence indicators (cursor, user list)
+- 🗂️ Version history & canvas snapshots
+- 🔒 Role-based permissions
+- 🌐 Cloud deployment & scaling
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!   
+Feel free to check the [issues page](https://github.com/your-username/InkCalibur/issues).
+
+---
+
+Made with ❤️ by [RonakSingh2006](https://github.com/RonakSingh2006)
+```
