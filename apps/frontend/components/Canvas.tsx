@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { initDraw } from "@/draw";
+import { Game } from "@/draw/Game";
 import Square from "@/icons/Sqaure";
 import Circle from "@/icons/Circle";
 import Line from "@/icons/Line";
@@ -15,29 +15,37 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
   const convasRef = useRef<HTMLCanvasElement>(null);
   const [shape,setShape] = useState<Shape>("rectangle");
   const {size} = useWindowDimensions();
+  const gameRef = useRef<Game | null>(null);
 
 
   useEffect(()=>{
-    // @ts-ignore
-    window.selectedShape = shape;
+
+    gameRef.current?.setTool(shape);
+
   },[shape])
 
 
   useEffect(() => {
     const canvas = convasRef.current;
 
-    if (!canvas) return;
+    if (!canvas || !size) return;
 
-    canvas.width = size?.width;
-    canvas.height = size?.height;
+    canvas.width = size.width;
+    canvas.height = size.height;
 
     socket.send(JSON.stringify({
         type : "join_room",
         roomId : roomId
     }))
 
-    initDraw(canvas, slug , socket , roomId);
-  }, [convasRef, slug, socket , roomId , size]);
+    gameRef.current = new Game(canvas,slug,socket,roomId);
+
+    return ()=>{
+      gameRef.current?.destroy();
+      gameRef.current = null;
+    }
+
+  }, [slug, socket , roomId , size]);
 
   return (
     <div>

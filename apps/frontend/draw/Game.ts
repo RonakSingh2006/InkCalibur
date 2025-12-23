@@ -1,0 +1,290 @@
+import { BACKEND_URL } from "@repo/common/config";
+import axios from "axios"
+
+interface Shape {
+  type : "circle" | "line" | "rectangle",
+  posX  : number,
+  posY  : number
+  data  : string
+}
+
+type tool = "circle" | "rectangle" | "line";
+
+export class Game {
+
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private socket: WebSocket;
+  private shapes: Shape[];
+  private slug: string;
+  private roomId : number;
+  private startX : number;
+  private startY : number;
+  private currTool : tool;
+  private draw: boolean;
+
+  private onMouseDown : (e : MouseEvent)=>void;
+  private onMouseMove : (e : MouseEvent)=>void;
+  private onMouseUp : (e : MouseEvent)=>void;
+  
+
+  constructor(canvas : HTMLCanvasElement , slug : string , socket : WebSocket , roomId : number) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d')!;
+    this.slug = slug;
+    this.socket = socket;
+    this.roomId = roomId;
+    this.currTool = "rectangle";
+    this.draw = false;
+
+    this.onMouseDown = (e : MouseEvent)=>{
+      console.log("Intializing ....",e)
+    }
+    this.onMouseMove = (e : MouseEvent)=>{
+      console.log("Intializing ....",e)
+    }
+    this.onMouseUp = (e : MouseEvent)=>{
+      console.log("Intializing ....",e)
+    }
+
+    this.shapes = [];
+    this.startX = 0;
+    this.startY = 0;
+
+    this.bootstrap();
+  }
+
+  async bootstrap(){
+    await this.init();
+    this.render();
+
+    this.initSocketHandler();
+    this.mouseDownEvent();
+    this.mouseMoveEvent();
+    this.mouseUpEvent();
+  }
+
+  async init(){
+    this.shapes = await getAllShapes(this.slug);
+  }
+
+  initSocketHandler(){
+    this.socket.onmessage = (event)=>{
+      const parsedData = JSON.parse(event.data);
+
+      if(parsedData.type === "shape"){
+        const s:Shape = parsedData.data;
+
+        this.shapes.push(s);
+
+        this.render();
+      }
+    }
+  }
+
+
+  render(){
+    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+  
+    this.shapes.forEach((s)=>{
+      if(s.type === "rectangle"){
+        const data = JSON.parse(s.data);
+
+        this.ctx.strokeStyle = "white";
+        this.ctx.strokeRect(s.posX,s.posY,data.width,data.height);
+      }
+      else if(s.type === "circle"){
+
+        const data = JSON.parse(s.data);
+
+        this.ctx.beginPath();
+        this.ctx.ellipse(s.posX, s.posY, data.radiusX, data.radiusY, data.angle, 0, 2 * Math.PI);
+        this.ctx.stroke();
+      }
+      else if(s.type === "line"){
+        const data = JSON.parse(s.data);
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(s.posX,s.posY);
+        this.ctx.lineTo(data.endPointX,data.endPointY);
+        this.ctx.stroke();
+      }
+    })
+  }
+
+
+  mouseDownEvent(){
+    this.onMouseDown = (event : MouseEvent)=>{
+      this.draw = true;
+
+      const mousePos = this.getMousePos(event);
+      this.startX = mousePos.x;
+      this.startY = mousePos.y;
+
+      this.ctx.strokeStyle = "white"
+    }
+    this.canvas.addEventListener("mousedown",this.onMouseDown);
+  }
+
+
+  mouseMoveEvent(){
+    this.onMouseMove = (event)=>{
+      const currShape = this.currTool;
+
+      const mousePos = this.getMousePos(event);
+      const posX = mousePos.x;
+      const posY = mousePos.y;
+
+      if(currShape === "rectangle"){
+        const w = posX - this.startX;
+        const h = posY - this.startY;
+
+        if(this.draw){
+          this.render();
+          this.ctx.strokeRect(this.startX,this.startY,w,h);
+        }
+      }
+      else if(currShape === "circle"){
+        const dx = posX - this.startX;
+        const dy = posY - this.startY;
+
+        const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
+        const radiusY = radiusX * 0.6; 
+        const centerX = this.startX + dx/2;
+        const centerY = this.startY + dy/2;
+        const angle = Math.atan2(dy,dx);
+
+        if(this.draw){
+          this.render();
+          this.ctx.beginPath();
+          this.ctx.ellipse(centerX, centerY, radiusX, radiusY, angle, 0, 2 * Math.PI);
+          this.ctx.stroke();
+        }
+      }
+      else if(currShape === "line"){
+        if(this.draw){
+          this.render();
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.startX,this.startY);
+          this.ctx.lineTo(posX,posY);
+          this.ctx.stroke();
+        }
+      }
+    }
+
+    this.canvas.addEventListener("mousemove",this.onMouseMove);
+  }
+
+
+  mouseUpEvent(){
+    this.onMouseUp = async (event)=>{
+      const currShape = this.currTool;
+      this.draw = false;
+      
+      const mousePos = this.getMousePos(event);
+      const posX = mousePos.x;
+      const posY = mousePos.y;
+
+      let s : Shape | null = null;
+
+      if(currShape === "rectangle"){
+        const w = posX - this.startX;
+        const h = posY - this.startY;
+
+        s = {
+          type : "rectangle",
+          posX : this.startX,
+          posY : this.startY,
+          data : JSON.stringify({
+            width : w,
+            height : h
+          })
+        }
+      }
+      else if(currShape === "circle"){
+        const dx = posX - this.startX;
+        const dy = posY - this.startY;
+
+        const radiusX = Math.sqrt(dx * dx + dy * dy) / 2;
+        const radiusY = radiusX * 0.6; 
+        const centerX = this.startX + dx/2;
+        const centerY = this.startY + dy/2;
+        const angle = Math.atan2(dy,dx);
+
+        s = {
+          type : "circle",
+          posX : centerX,
+          posY : centerY,
+          data : JSON.stringify({
+            angle,
+            radiusX,
+            radiusY
+          })
+        }
+      }
+      else if(currShape === "line"){
+        s = {
+          type : "line",
+          posX : this.startX,
+          posY : this.startY,
+          data : JSON.stringify({
+            endPointX : posX,
+            endPointY : posY
+          })
+        }
+      }
+
+
+      if(s){
+        this.socket.send(JSON.stringify({
+          type : "add_shape",
+          roomId : this.roomId,
+          shape : s
+        }))
+      }
+
+    }
+    this.canvas.addEventListener("mouseup",this.onMouseUp);
+  }
+
+  private getMousePos(e: MouseEvent) {
+    const rect = this.canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+
+  setTool(t : tool){
+    this.currTool = t;
+  }
+
+
+  destroy(){
+    this.canvas.removeEventListener("mousedown",this.onMouseDown);
+    this.canvas.removeEventListener("mousemove",this.onMouseMove);
+    this.canvas.removeEventListener("mouseup",this.onMouseUp);
+  }
+}
+
+
+
+async function getAllShapes(slug : string) {
+  try{
+    const response = await axios.get(`${BACKEND_URL}/shapes/${slug}`);
+    return response.data.shapes;
+  }
+
+  catch(err){
+    if(axios.isAxiosError(err)){
+      console.log(err.response?.data.message);
+    }
+    else{
+      console.log(err);
+    }
+
+    return [];
+  }
+}
