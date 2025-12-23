@@ -39,12 +39,14 @@ export default function Canvas({ slug , socket , roomId}: { slug: string , socke
     }))
 
     gameRef.current = new Game(canvas,slug,socket,roomId);
+    gameRef.current?.setTool(shape);
 
     return ()=>{
       gameRef.current?.destroy();
       gameRef.current = null;
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, socket , roomId , size]);
 
   return (
