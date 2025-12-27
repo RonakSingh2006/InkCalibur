@@ -15,17 +15,21 @@ jobs:
 
       - name: Execute Remote Commands via SSH
         run: |
-          # Setup SSH Key
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
-          # Execute commands on the remote server
-          ssh -i ~/.ssh/id_rsa ubuntu@43.204.227.16 << 'EOF'
-            cd InkCalibur/
+          ssh -i ~/.ssh/id_rsa ubuntu@43.204.227.16
+
+            export PATH="/home/ubuntu/.nvm/versions/node/v24.12.0/bin:$PATH"
+            
+            cd ~/InkCalibur
+            
             git pull origin main
+            
             pnpm install
             pnpm run build
+
             pm2 restart http-server ws-server frontend
           EOF
