@@ -10,6 +10,8 @@ jobs :
     steps:
       - run : |
           echo "{{secrets.SSH_PRIVATE_KEY}}" &> ~/ssh_key
+          mkdir .ssh
+          echo"{{secrets.KNOWN_HOSTS}}" &> ~/.ssh/known_hosts
           ssh -i ~/ssh_key ubuntu@43.204.227.16
           cd InkCalibur/ && git pull
           pnpm install
