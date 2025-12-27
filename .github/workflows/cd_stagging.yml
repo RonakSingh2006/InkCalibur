@@ -20,16 +20,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
-          ssh -i ~/.ssh/id_rsa ubuntu@43.204.227.16
+
+          ssh -i ~/.ssh/id_rsa ubuntu@43.204.227.16 << 'EOF'
 
             export PATH="/home/ubuntu/.nvm/versions/node/v24.12.0/bin:$PATH"
             
-            cd ~/InkCalibur
+            cd /home/ubuntu/InkCalibur || exit
             
             git pull origin main
-            
+
             pnpm install
             pnpm run build
-
+            
             pm2 restart http-server ws-server frontend
           EOF
