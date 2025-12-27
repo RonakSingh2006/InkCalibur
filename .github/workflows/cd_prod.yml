@@ -1,4 +1,4 @@
-name: Deploying to Staging
+name: Deploying to Server
 
 on: 
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   Redeploy:
-    name: Deploying everything to Staging
+    name: Deploying everything to Server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
