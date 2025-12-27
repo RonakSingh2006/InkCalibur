@@ -1,0 +1,19 @@
+name : Deploying to Stagging
+on : 
+  push:
+    branches:
+      - "main"
+jobs :
+  Redeploy:
+    name : Deploying everything to Stagging
+    runs-on: ubuntu-latest
+    steps:
+      - run : |
+          echo "{{secrets.SSH_PRIVATE_KEY}}" &> ~/ssh_key
+          ssh -i ~/ssh_key ubuntu@43.204.227.16
+          cd InkCalibur/ && git pull
+          pnpm install
+          pnpm run build
+          pm2 restart http-server
+          pm2 restart ws-server
+          pm2 restart frontend
