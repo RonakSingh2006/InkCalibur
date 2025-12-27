@@ -3,5 +3,12 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@repo/backend-common/config": ["../../packages/backend-common/dist/config"],
+      "@repo/common/schema": ["../../packages/common/dist/schema"],
+      "@repo/common/config": ["../../packages/common/dist/config"],
+      "@repo/db/client": ["../../packages/db/dist/client"]
+    }
   }
 }

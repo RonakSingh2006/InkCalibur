@@ -1,12 +1,18 @@
 {
   "name": "@repo/db",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "commonjs",
+  "main": "./dist/lib/prisma.js",
+  "types": "./dist/lib/prisma.d.ts",
   "scripts": {
+    "build": "tsc -b",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "exports" : {
-    "./client" : "./lib/prisma.ts"
+    "./client" : {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    }
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
