@@ -1,23 +1,31 @@
-name : Deploying to Stagging
-on : 
+name: Deploying to Staging
+
+on: 
   push:
     branches:
       - "main"
-jobs :
+
+jobs:
   Redeploy:
-    name : Deploying everything to Stagging
+    name: Deploying everything to Staging
     runs-on: ubuntu-latest
     steps:
-      - run : |
-          echo "{{secrets.SSH_PRIVATE_KEY}}" &> ~/ssh_key
-          mkdir -p /home/runner/.ssh
-          touch /home/runner/.ssh/known_hosts
-          echo "{{secrets.KNOWN_HOSTS}}" &> ~/.ssh/known_hosts
-          chmod 700 /home/runner/ssh_key
-          ssh -i ~/ssh_key ubuntu@43.204.227.16
-          cd InkCalibur/ && git pull
-          pnpm install
-          pnpm run build
-          pm2 restart http-server
-          pm2 restart ws-server
-          pm2 restart frontend
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Execute Remote Commands via SSH
+        run: |
+          # Setup SSH Key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+          # Execute commands on the remote server
+          ssh -i ~/.ssh/id_rsa ubuntu@43.204.227.16 << 'EOF'
+            cd InkCalibur/
+            git pull origin main
+            pnpm install
+            pnpm run build
+            pm2 restart http-server ws-server frontend
+          EOF
