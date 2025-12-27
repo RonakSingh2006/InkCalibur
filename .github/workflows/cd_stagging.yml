@@ -10,9 +10,10 @@ jobs :
     steps:
       - run : |
           echo "{{secrets.SSH_PRIVATE_KEY}}" &> ~/ssh_key
-          mkdir /home/runner/.ssh
+          mkdir -p /home/runner/.ssh
           touch /home/runner/.ssh/known_hosts
-          echo"{{secrets.KNOWN_HOSTS}}" &> ~/.ssh/known_hosts
+          echo "{{secrets.KNOWN_HOSTS}}" &> ~/.ssh/known_hosts
+          chmod 700 /home/runner/ssh_key
           ssh -i ~/ssh_key ubuntu@43.204.227.16
           cd InkCalibur/ && git pull
           pnpm install
