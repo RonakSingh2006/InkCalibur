@@ -1,0 +1,32 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
+        NEXT_PUBLIC_WS_URL: ws://localhost:8080
+
+    ports:
+      - "3000:3000"
+    depends_on:
+      - http-server
+      - ws-server
+
+  http-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.http-server
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "3001:3001"
+
+  ws-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ws-server
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "8080:8080"
