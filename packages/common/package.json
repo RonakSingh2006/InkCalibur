@@ -25,6 +25,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/node": "^26.1.1",
     "zod": "^4.2.1"
   }
 }
