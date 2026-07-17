@@ -5,12 +5,16 @@ node_modules
 .pnp
 .pnp.js
 
-# Local env files
+# Local env files (ignore actual .env files)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+# But track all .env.prod.example files (so they can be committed)
+!.env.prod.example
+!apps/**/.env.prod.example
+!packages/**/.env.prod.example
 
 # Testing
 coverage
