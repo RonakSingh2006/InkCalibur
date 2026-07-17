@@ -161,9 +161,13 @@ wss.on('connection',(socket,req)=>{
       users.delete(userId);
     })
 
-    socket.send(JSON.stringify({
-          type : "server_message",
-          message : "Disconnected"
-        }));
+    try {
+      socket.send(JSON.stringify({
+            type : "server_message",
+            message : "Disconnected"
+          }));
+    } catch(e) {
+      // Socket already closed
+    }
   })
 })

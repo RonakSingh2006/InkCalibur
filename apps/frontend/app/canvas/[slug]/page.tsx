@@ -1,5 +1,5 @@
 import CanvasSocket from "@/components/CanvasSocket";
-import { BACKEND_URL } from "@repo/common/config";
+import { getBackendUrl } from "@repo/common/config";
 import axios from "axios";
 
 export default async function RoomCanvas({params} : {params : Promise<{slug : string}>}){
@@ -7,7 +7,7 @@ export default async function RoomCanvas({params} : {params : Promise<{slug : st
   const {slug} = await params;
   let id = 0;
   try{
-    const response = await axios.get(`${BACKEND_URL}/roomId/${slug}`)
+    const response = await axios.get(`${getBackendUrl()}/roomId/${slug}`)
     id = response.data.roomId;
   }
   catch(err){
