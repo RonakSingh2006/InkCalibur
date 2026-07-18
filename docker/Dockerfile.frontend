@@ -5,8 +5,6 @@ RUN npm install -g pnpm
 WORKDIR /inkalibur
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-
-
 COPY apps/frontend/package.json ./apps/frontend/
 COPY packages/common/package.json ./packages/common/
 COPY packages/ui/package.json ./packages/ui/
@@ -21,6 +19,7 @@ COPY packages ./packages
 
 RUN pnpm install --frozen-lockfile
 
+RUN pnpm --filter @repo/common build
 
 ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL

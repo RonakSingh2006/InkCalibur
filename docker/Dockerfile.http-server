@@ -4,10 +4,7 @@ RUN npm install -g pnpm
 
 WORKDIR /inkalibur
 
-
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-
-
 COPY apps/http-server/package.json ./apps/http-server/
 COPY packages/common/package.json ./packages/common/
 COPY packages/db/package.json ./packages/db/
@@ -16,13 +13,16 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN pnpm install --frozen-lockfile
 
-
 COPY apps/http-server ./apps/http-server
 COPY packages ./packages
 
 
 RUN pnpm install --frozen-lockfile
 
+# Build workspace dependencies
+RUN pnpm --filter @repo/db exec prisma generate
+RUN pnpm --filter @repo/backend-common build
+RUN pnpm --filter @repo/common build
 
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
