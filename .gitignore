@@ -16,6 +16,9 @@ node_modules
 !apps/**/.env.prod.example
 !packages/**/.env.prod.example
 
+# Ignore deployment notes (not meant for public repo)
+DEPLOY.md
+
 # Testing
 coverage
 
@@ -40,3 +43,5 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+DEPLOYMENT.md
