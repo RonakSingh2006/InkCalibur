@@ -44,12 +44,12 @@ jobs:
 
             echo 'DATABASE_URL=${{ secrets.DATABASE_URL }}' > .env
 
-            docker compose -f docker-compose.prod.yml down || true
+            sudo docker compose -f docker-compose.prod.yml down || true
 
-            docker image prune -f
+            sudo docker image prune -f
 
-            docker compose -f docker-compose.prod.yml pull
+            sudo docker compose -f docker-compose.prod.yml pull
 
-            docker compose -f docker-compose.prod.yml up -d
+            sudo docker compose -f docker-compose.prod.yml up -d
 
-            docker image prune -f
+            sudo docker image prune -f
