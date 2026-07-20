@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Images
+        env:
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
+        run: |
+          docker compose build
+          
+          docker push ronaksingh2006/inkcalibur-http-server:latest
+          docker push ronaksingh2006/inkcalibur-ws-server:latest
+          docker push ronaksingh2006/inkcalibur-frontend:latest
+
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p ~/inkcalibur
+            cd ~/inkcalibur
+
+            curl -O https://raw.githubusercontent.com/RonakSingh2006/InkCalibur/main/docker-compose.prod.yml
+
+            echo 'DATABASE_URL=${{ secrets.DATABASE_URL }}' > .env
+
+            docker compose -f docker-compose.prod.yml down || true
+
+            docker image prune -f
+
+            docker compose -f docker-compose.prod.yml pull
+
+            docker compose -f docker-compose.prod.yml up -d
+
+            docker image prune -f
