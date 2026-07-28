@@ -20,7 +20,7 @@ export default function Rooms({
       {rooms.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-zinc-500">
           <Image
-            src="/icons/empty-docs.svg"
+            src="/empty-docs.svg"
             alt="No rooms"
             width={64}
             height={64}
