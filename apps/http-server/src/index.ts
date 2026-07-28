@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Sign In
+// Sign Up
 app.post("/signup", async (req, res) => {
 
   const result = UserSchema.safeParse(req.body);
@@ -60,7 +60,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// Sign Up
+// Sign In
 app.post("/signin", async (req, res) => {
   const result = AuthSchema.safeParse(req.body);
 

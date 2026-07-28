@@ -12,7 +12,10 @@ export default function Home() {
    
       <nav className="flex items-center justify-between px-8 py-6">
 
-        <h1 className="text-2xl font-bold tracking-wide">
+        <h1
+          className="text-2xl font-bold tracking-wide cursor-pointer"
+          onClick={() => router.push("/")}
+        >
           Ink
           <span className="text-indigo-500">Calibur</span>
         </h1>
@@ -34,7 +37,7 @@ export default function Home() {
         </h2>
 
         <p className="mt-6 text-zinc-400 max-w-2xl text-lg">
-          A fast, collaborative whiteboard inspired by Excalidraw.
+          A fast, collaborative whiteboard.
           Draw diagrams, brainstorm ideas, and collaborate in real-time.
         </p>
 
@@ -67,7 +70,7 @@ export default function Home() {
 
           <Card title="Infinite Canvas" desc="Draw freely without limits. Zoom, pan, and create endlessly."/>
           <Card title="Real-time Collaboration" desc="Work together with your team using WebSockets."/>
-          <Card title="Hand-drawn Feel" desc="Natural sketch-style strokes just like Excalidraw."/>
+          <Card title="Versatile Tools" desc="Rectangle, circle, ellipse, line & pencil — draw anything you need."/>
           
         </div>
 

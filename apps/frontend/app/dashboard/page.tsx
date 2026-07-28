@@ -13,20 +13,17 @@ import { useRouter } from "next/navigation";
 interface Room {
   id: string;
   slug: string;
-  createdAt : string,
-  adminId : string
+  createdAt: string;
+  adminId: string;
 }
 
 async function getRooms() {
-  try{
-    const response = await axios.get(`${BACKEND_URL}/rooms`,{
-      headers : {"Authorization" : localStorage.getItem('token')}
-    })
-
+  try {
+    const response = await axios.get(`${BACKEND_URL}/rooms`, {
+      headers: { Authorization: localStorage.getItem("token") },
+    });
     return response.data.rooms;
-  }
-  
-  catch(error){
+  } catch (error) {
     console.log(error);
     return null;
   }
@@ -38,73 +35,80 @@ export default function DashBoard() {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(()=>{
+  useEffect(() => {
     async function LoadData() {
       const rooms = await getRooms();
-
-      if(rooms === null){
+      if (rooms === null) {
         router.push("/signin");
       }
-
       setRooms(rooms);
     }
-
     LoadData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <div>
-      <div
-        className={`relative w-screen h-screen bg-zinc-950 border-t border-zinc-800 flex flex-col overflow-hidden ${joinRoomOpen || createRoomOpen ? "opacity-80" : ""}`}
-      >
-        <div className="flex items-center justify-between px-8 py-6">
-          <h1 className="text-2xl font-bold tracking-wide text-white">
-            Ink
-            <span className="text-indigo-500">Calibur</span>
+    <div className="relative min-h-screen bg-zinc-950">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-8 py-4">
+          <h1
+            className="text-2xl font-bold tracking-wide text-white cursor-pointer"
+            onClick={() => router.push("/")}
+          >
+            Ink<span className="text-indigo-500">Calibur</span>
           </h1>
 
-          <SearchBar />
+          <div className="hidden md:block w-72">
+            <SearchBar />
+          </div>
 
-          <div className="flex gap-5">
+          <div className="flex gap-3">
             <Button
               text="Create Room"
               variant="secondary"
               size="medium"
-              onClick={() => {
-                setCreateRoomOpen(true);
-              }}
-            ></Button>
+              onClick={() => setCreateRoomOpen(true)}
+            />
             <Button
               text="Join Room"
-              variant="secondary"
+              variant="primary"
               size="medium"
-              onClick={() => {
-                setJoinRoomOpen(true);
-              }}
-            ></Button>
+              onClick={() => setJoinRoomOpen(true)}
+            />
           </div>
         </div>
+      </nav>
 
-        <Rooms rooms={rooms} onDelete = {(slug)=>{
-          setRooms(prev => prev.filter((e)=>e.slug !== slug));
-        }}/>
-      </div>
+      {/* Main content */}
+      <main className="h-[calc(100vh-73px)]">
+        <Rooms
+          rooms={rooms}
+          onDelete={(slug) => {
+            setRooms((prev) => prev.filter((e) => e.slug !== slug));
+          }}
+        />
+      </main>
 
-
-      {(joinRoomOpen || createRoomOpen) && 
-
-      <div className="w-screen h-screen inset-0 absolute overflow-hidden flex justify-center items-center">
-        {joinRoomOpen && <JoinRoom closeRoom={()=>{
-          setJoinRoomOpen(false);
-        }}/>}
-
-        {createRoomOpen && <CreateRoom closeRoom={()=>{
-          setCreateRoomOpen(false);
-        }}/>}
-
-      </div>}
+      {/* Modals */}
+      {(joinRoomOpen || createRoomOpen) && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          {joinRoomOpen && (
+            <JoinRoom
+              closeRoom={() => {
+                setJoinRoomOpen(false);
+              }}
+            />
+          )}
+          {createRoomOpen && (
+            <CreateRoom
+              closeRoom={() => {
+                setCreateRoomOpen(false);
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
