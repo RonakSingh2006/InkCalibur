@@ -8,7 +8,8 @@ export default function Square({ size, color }: { size: number; color: string })
         height="70"
         fill="none"
         stroke={color}
-        strokeWidth="10"
+        strokeWidth="8"
+        rx="4"
       />
     </svg>
   );

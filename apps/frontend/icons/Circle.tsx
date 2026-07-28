@@ -4,10 +4,10 @@ export default function Circle({size,color} : {size : number , color : string}) 
       <circle
         cx="50"
         cy="50"
-        r="40"
+        r="38"
         fill="none"
         stroke={color}
-        strokeWidth="10"
+        strokeWidth="8"
       />
     </svg>
   );

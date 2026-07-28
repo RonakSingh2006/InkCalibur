@@ -1,8 +1,14 @@
-export default function Hand({ size, color }: { size: number; color: string }) {
+export default function Hand({
+  size,
+  color,
+}: {
+  size: number;
+  color: string;
+}) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100">
+    <svg width={size} height={size} viewBox="0 0 140 140">
       <path
-        transform="translate(9, 0)"
+        transform="translate(-15, -20) scale(2)"
         d="
           M35 55
           V30

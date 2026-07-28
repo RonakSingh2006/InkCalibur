@@ -1,102 +1,75 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Game } from "@/draw/Game";
-import Square from "@/icons/Sqaure";
-import Circle from "@/icons/Circle";
-import Line from "@/icons/Line";
 import { useState } from "react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import Ellipse from "@/icons/Ellipse";
-import Pencil from "@/icons/Pencil";
-import Hand from "@/icons/Hand";
+import Toolbar from "./Toolbar";
+import { useRouter } from "next/navigation";
 
 type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
 
-
-export default function Canvas({ slug , socket , roomId}: { slug: string , socket : WebSocket , roomId : number}) {
-
-  const convasRef = useRef<HTMLCanvasElement>(null);
-  const [shape,setShape] = useState<Shape>("rectangle");
-  const {size} = useWindowDimensions();
+export default function Canvas({ slug, socket, roomId }: { slug: string; socket: WebSocket; roomId: number }) {
+  const router = useRouter();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [shape, setShape] = useState<Shape>("rectangle");
+  const { size } = useWindowDimensions();
   const gameRef = useRef<Game | null>(null);
 
-
-  useEffect(()=>{
-
+  useEffect(() => {
     gameRef.current?.setTool(shape);
-
-  },[shape])
-
+  }, [shape]);
 
   useEffect(() => {
-    const canvas = convasRef.current;
-
+    const canvas = canvasRef.current;
     if (!canvas || !size) return;
 
     canvas.width = size.width;
     canvas.height = size.height;
 
-    socket.send(JSON.stringify({
-        type : "join_room",
-        roomId : roomId
-    }))
+    socket.send(
+      JSON.stringify({
+        type: "join_room",
+        roomId: roomId,
+      })
+    );
 
-    gameRef.current = new Game(canvas,slug,socket,roomId);
+    gameRef.current = new Game(canvas, slug, socket, roomId);
     gameRef.current?.setTool(shape);
 
-    return ()=>{
+    return () => {
       gameRef.current?.destroy();
       gameRef.current = null;
-    }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, socket, roomId, size]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, socket , roomId , size]);
+  const handleLeaveRoom = useCallback(() => {
+    socket.send(
+      JSON.stringify({
+        type: "leave_room",
+        roomId: roomId,
+      })
+    );
+    router.push("/dashboard");
+  }, [socket, roomId, router]);
+
+  const handleClearCanvas = useCallback(() => {
+    gameRef.current?.clearCanvas();
+  }, []);
 
   return (
-    <div>
-      <canvas className={`bg-black ${shape === "hand" ? "cursor-pointer" : "cursor-crosshair"}`} ref={convasRef}></canvas>
+    <div className="relative w-screen h-screen overflow-hidden bg-zinc-950">
+      <canvas
+        className={`block w-full h-full ${shape === "hand" ? "cursor-grab" : "cursor-crosshair"}`}
+        ref={canvasRef}
+      />
 
-      <div className="fixed top-5 w-screen flex justify-end pr-10 pointer-events-none">
-        <div className="flex gap-3 p-1 pl-3 rounded-md bg-zinc-900 pointer-events-auto">
-
-          <button className="cursor-pointer" title="rectangle" onClick={()=>{
-            setShape("rectangle");
-          }}>
-            <Square size={30} color={`${shape === "rectangle" ? "green" : "white"}`}/>
-          </button>
-
-          <button className="cursor-pointer m-2" title="circle" onClick={()=>{
-            setShape("circle");
-          }}>
-            <Circle size={30} color={`${shape === "circle" ? "green" : "white"}`}/>
-          </button>
-
-          <button className="cursor-pointer" title="ellipse" onClick={()=>{
-            setShape("ellipse");
-          }}>
-            <Ellipse size={60} color={`${shape === "ellipse" ? "green" : "white"}`}/>
-          </button>
-
-          <button className="cursor-pointer" title="line" onClick={()=>{
-            setShape("line");
-          }}>
-            <Line size={30} color={`${shape === "line" ? "green" : "white"}`}/>
-          </button>
-
-          <button className="cursor-pointer" title="pencil" onClick={()=>{
-            setShape("pencil");
-          }}>
-            <Pencil size={60} color={`${shape === "pencil" ? "green" : "white"}`}/>
-          </button>
-
-          <button className="cursor-pointer" title="hand" onClick={()=>{
-            setShape("hand");
-          }}>
-            <Hand size={60} color={`${shape === "hand" ? "green" : "white"}`}/>
-          </button>
-
-        </div>
-      </div>
+      <Toolbar
+        activeTool={shape}
+        onToolChange={setShape}
+        onLeaveRoom={handleLeaveRoom}
+        onClearCanvas={handleClearCanvas}
+      />
     </div>
   );
 }

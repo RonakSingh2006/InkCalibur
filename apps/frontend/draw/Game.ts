@@ -305,6 +305,11 @@ export class Game {
     this.currTool = t;
   }
 
+  clearCanvas() {
+    this.shapes = [];
+    this.render();
+  }
+
   destroy() {
     this.canvas.removeEventListener("mousedown", this.handleMouseDown);
     this.canvas.removeEventListener("mousemove", this.handlemouseMove);

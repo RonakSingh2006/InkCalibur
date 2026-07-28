@@ -7,11 +7,9 @@ export default function Line({size,color} : {size : number , color : string}) {
         x2="90"
         y2="10"
         stroke={color}
-        strokeWidth="10"
+        strokeWidth="8"
         strokeLinecap="round"
       />
     </svg>
   );
 }
-
-

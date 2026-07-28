@@ -4,11 +4,11 @@ export default function Ellipse({ size, color }: { size: number; color: string }
       <ellipse
         cx="50"
         cy="50"
-        rx="34"
+        rx="46"
         ry="22"
         fill="none"
         stroke={color}
-        strokeWidth="5"
+        strokeWidth="8"
       />
     </svg>
   );
