@@ -63,6 +63,10 @@ export class Game {
 
         this.render();
       }
+      else if (parsedData.type === "clear_canvas") {
+        this.shapes = [];
+        this.render();
+      }
     };
   }
 
@@ -308,6 +312,12 @@ export class Game {
   clearCanvas() {
     this.shapes = [];
     this.render();
+    this.socket.send(
+      JSON.stringify({
+        type: "clear_canvas",
+        roomId: this.roomId,
+      })
+    );
   }
 
   destroy() {

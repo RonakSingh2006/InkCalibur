@@ -71,7 +71,7 @@ wss.on('connection',(socket,req)=>{
 
   socket.on('message',async (data)=>{
 
-    let parsedData: Task | Join_Leave;
+    let parsedData: any;
     try {
       parsedData = JSON.parse(data.toString());
     } catch(error) {
@@ -149,6 +149,33 @@ wss.on('connection',(socket,req)=>{
           message : "DB ERROR"
         }));
         socket.close();
+      }
+    }
+    else if(parsedData.type === "clear_canvas"){
+      const roomId = parsedData.roomId;
+      const users = roomsMap.get(roomId);
+
+      if(!users) return;
+
+      try{
+        
+        await prisma.shape.deleteMany({
+          where: { roomId }
+        });
+
+        users.forEach(u=>{
+          const ws = socketMap.get(u);
+          ws?.send(JSON.stringify({
+            type : "clear_canvas",
+            roomId
+          }));
+        });
+      }
+      catch(err){
+        socket.send(JSON.stringify({
+          type : "server_message",
+          message : "DB ERROR"
+        }));
       }
     }
   })
