@@ -50,38 +50,56 @@ export default function DashBoard() {
   return (
     <div className="relative min-h-screen bg-zinc-950">
       {/* Navbar */}
-      <nav className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between px-8 py-4">
+      <nav className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-4 sm:px-8 py-3">
+          {/* Logo */}
           <h1
-            className="text-2xl font-bold tracking-wide text-white cursor-pointer"
+            className="shrink-0 text-xl font-extrabold tracking-tight text-white cursor-pointer select-none"
             onClick={() => router.push("/")}
           >
             Ink<span className="text-indigo-500">Calibur</span>
           </h1>
 
-          <div className="hidden md:block w-72">
-            <SearchBar />
-          </div>
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Search - hidden on very small screens */}
+            <div className="hidden sm:block w-72">
+              <SearchBar />
+            </div>
 
-          <div className="flex gap-3">
+            <div className="h-5 w-px bg-zinc-800" />
+
             <Button
               text="Create Room"
               variant="secondary"
-              size="medium"
+              size="sm"
               onClick={() => setCreateRoomOpen(true)}
             />
+
             <Button
               text="Join Room"
               variant="primary"
-              size="medium"
+              size="sm"
               onClick={() => setJoinRoomOpen(true)}
+            />
+
+            <div className="h-5 w-px bg-zinc-800" />
+
+            <Button
+              text="Logout"
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem("token");
+                router.push("/");
+              }}
             />
           </div>
         </div>
       </nav>
 
       {/* Main content */}
-      <main className="h-[calc(100vh-73px)]">
+      <main className="h-[calc(100vh-61px)]">
         <Rooms
           rooms={rooms}
           onDelete={(slug) => {
@@ -92,7 +110,7 @@ export default function DashBoard() {
 
       {/* Modals */}
       {(joinRoomOpen || createRoomOpen) && (
-        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           {joinRoomOpen && (
             <JoinRoom
               closeRoom={() => {
