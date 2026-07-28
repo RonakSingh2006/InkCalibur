@@ -11,9 +11,11 @@ interface Room {
 export default function Rooms({
   rooms,
   onDelete,
+  isSearching,
 }: {
   rooms: Room[];
   onDelete: (slug: string) => void;
+  isSearching?: boolean;
 }) {
   return (
     <div className="flex-1 overflow-y-auto px-10 py-6">
@@ -26,9 +28,13 @@ export default function Rooms({
             height={64}
             className="mb-4 opacity-50"
           />
-          <p className="text-lg font-medium">No rooms yet</p>
+          <p className="text-lg font-medium">
+            {isSearching ? "No matching rooms" : "No rooms yet"}
+          </p>
           <p className="text-sm mt-1">
-            Create a room to start collaborating
+            {isSearching
+              ? "Try a different search term"
+              : "Create a room to start collaborating"}
           </p>
         </div>
       ) : (

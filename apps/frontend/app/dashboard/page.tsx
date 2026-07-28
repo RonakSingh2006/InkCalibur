@@ -2,7 +2,7 @@
 
 import Button from "@/components/Button";
 import SearchBar from "@/components/Searchbar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Rooms from "@/components/Rooms";
 import JoinRoom from "@/components/JoinRoom";
 import CreateRoom from "@/components/CreateRoom";
@@ -29,8 +29,25 @@ async function getRooms() {
   }
 }
 
+async function searchRooms(query: string) {
+  try {
+    const response = await axios.get(
+      `${BACKEND_URL}/rooms/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: { Authorization: localStorage.getItem("token") },
+      }
+    );
+    return response.data.rooms;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
 export default function DashBoard() {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const router = useRouter();
@@ -42,10 +59,22 @@ export default function DashBoard() {
         router.push("/signin");
       }
       setRooms(rooms);
+      setFilteredRooms(rooms);
     }
     LoadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setFilteredRooms(rooms);
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    const results = await searchRooms(query);
+    setFilteredRooms(results);
+  }, [rooms]);
 
   return (
     <div className="relative min-h-screen bg-zinc-950">
@@ -63,8 +92,8 @@ export default function DashBoard() {
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Search - hidden on very small screens */}
-            <div className="hidden sm:block w-72">
-              <SearchBar />
+            <div className="hidden sm:block w-96">
+              <SearchBar onSearch={handleSearch} />
             </div>
 
             <div className="h-5 w-px bg-zinc-800" />
@@ -101,10 +130,12 @@ export default function DashBoard() {
       {/* Main content */}
       <main className="h-[calc(100vh-61px)]">
         <Rooms
-          rooms={rooms}
+          rooms={filteredRooms}
           onDelete={(slug) => {
             setRooms((prev) => prev.filter((e) => e.slug !== slug));
+            setFilteredRooms((prev) => prev.filter((e) => e.slug !== slug));
           }}
+          isSearching={isSearching}
         />
       </main>
 
