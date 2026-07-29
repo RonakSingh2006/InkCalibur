@@ -21,6 +21,7 @@ RUN pnpm install --frozen-lockfile
 
 # Build workspace dependencies
 RUN pnpm --filter @repo/db exec prisma generate
+RUN pnpm --filter @repo/db exec build
 RUN pnpm --filter @repo/backend-common build
 RUN pnpm --filter @repo/common build
 
