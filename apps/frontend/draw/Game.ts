@@ -9,7 +9,7 @@ interface Shape {
   data: string;
 }
 
-type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
+type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select";
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -41,6 +41,7 @@ export class Game {
     this.startX = 0;
     this.startY = 0;
     this.points = [];
+    this.canvas.style.cursor = "crosshair";
 
     this.init();
     this.initHandlers();
@@ -307,6 +308,15 @@ export class Game {
 
   setTool(t: tool) {
     this.currTool = t;
+    if(t === "hand"){
+      this.setCursor("grab");
+    }
+    else if(t === "select"){
+      this.setCursor("default");
+    }
+    else{
+      this.setCursor("crosshair");
+    }
   }
 
   clearCanvas() {
@@ -319,12 +329,16 @@ export class Game {
       })
     );
   }
+  setCursor(cursor : string){
+    this.canvas.style.cursor = cursor;
+  }
 
   destroy() {
     this.canvas.removeEventListener("mousedown", this.handleMouseDown);
     this.canvas.removeEventListener("mousemove", this.handlemouseMove);
     this.canvas.removeEventListener("mouseup", this.handlemouseUp);
   }
+
 }
 
 async function getAllShapes(slug: string) {

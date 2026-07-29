@@ -8,8 +8,9 @@ import Pencil from "@/icons/Pencil";
 import Hand from "@/icons/Hand";
 import Trash from "@/icons/Trash";
 import Logout from "@/icons/Logout";
+import Select from "@/icons/Select";
 
-type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
+type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select";
 
 interface ToolbarProps {
   activeTool: Shape;
@@ -34,6 +35,7 @@ const tools: ToolItem[] = [
   { id: "line", label: "Line", icon: (s, c) => <Line size={s} color={c} /> },
   { id: "pencil", label: "Pencil", icon: (s, c) => <Pencil size={s} color={c} /> },
   { id: "hand", label: "Hand", icon: (s, c) => <Hand size={s} color={c} /> },
+  { id: "select" , label: "Select" , icon: (s,c) => <Select size={s} color={c} />},
 ];
 
 function ToolButton({ tool, activeTool, onToolChange }: { tool: ToolItem; activeTool: Shape; onToolChange: (t: Shape) => void }) {

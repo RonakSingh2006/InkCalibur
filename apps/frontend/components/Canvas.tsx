@@ -6,7 +6,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Toolbar from "./Toolbar";
 import { useRouter } from "next/navigation";
 
-type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand";
+type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select";
 
 export default function Canvas({ slug, socket, roomId }: { slug: string; socket: WebSocket; roomId: number }) {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-zinc-950">
       <canvas
-        className={`block w-full h-full ${shape === "hand" ? "cursor-grab" : "cursor-crosshair"}`}
+        className={`block w-full h-full`}
         ref={canvasRef}
       />
 
