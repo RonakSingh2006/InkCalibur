@@ -1,1 +1,1 @@
-{"root":["./src/index.ts"],"version":"5.9.2"}
+{"root":["./src/auth.ts","./src/handlers.ts","./src/index.ts","./src/store.ts"],"version":"5.9.2"}

@@ -1,15 +1,11 @@
-import { BACKEND_URL } from "@repo/common/config";
-import axios from "axios";
-import { drawEllipse, drawPencil } from "./draw";
-
-interface Shape {
-  type: "circle" | "line" | "rectangle" | "ellipse" | "pencil";
-  posX: number;
-  posY: number;
-  data: string;
-}
-
-type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select";
+import { Shape, tool } from "./types";
+import { rectangleCheck, circleCheck, ellipseCheck, lineCheck, pencilCheck } from "./shapeChecks";
+import { drawHighlight } from "./highlight";
+import { drawShape } from "./shapeRenderer";
+import { drawPencil } from "./draw";
+import { createShape } from "./shapeFactory";
+import { moveShape } from "./moveHandler";
+import { getAllShapes } from "./api";
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -22,7 +18,13 @@ export class Game {
   private startY: number;
   private currTool: tool;
   private draw: boolean;
-  private points : {x : number , y : number}[];
+  private move: boolean;
+  private points: { x: number; y: number }[];
+  private selectedShape: Shape | null;
+  private offsetX: number;
+  private offsetY: number;
+  private highlightShape: Shape | null;
+  private nextTempId: number;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -37,10 +39,16 @@ export class Game {
     this.roomId = roomId;
     this.currTool = "rectangle";
     this.draw = false;
+    this.move = false;
     this.shapes = [];
     this.startX = 0;
     this.startY = 0;
     this.points = [];
+    this.selectedShape = null;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.highlightShape = null;
+    this.nextTempId = -1;
     this.canvas.style.cursor = "crosshair";
 
     this.init();
@@ -58,15 +66,18 @@ export class Game {
       const parsedData = JSON.parse(event.data);
 
       if (parsedData.type === "shape") {
-        const s: Shape = parsedData.data;
-
-        this.shapes.push(s);
-
+        this.shapes.push(parsedData.data);
         this.render();
-      }
-      else if (parsedData.type === "clear_canvas") {
+      } else if (parsedData.type === "clear_canvas") {
         this.shapes = [];
         this.render();
+      } else if (parsedData.type === "update_shape") {
+        const updatedShape: Shape = parsedData.data;
+        const index = this.shapes.findIndex((s) => s.id === updatedShape.id);
+        if (index !== -1) {
+          this.shapes[index] = updatedShape;
+          this.render();
+        }
       }
     };
   }
@@ -79,257 +90,170 @@ export class Game {
 
   render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.shapes.forEach((s) => drawShape(this.ctx, s));
+    if (this.highlightShape) {
+      drawHighlight(this.ctx, this.highlightShape);
+    }
+  }
 
-    this.shapes.forEach((s) => {
-      if (s.type === "rectangle") {
-        const data = JSON.parse(s.data);
-
-        this.ctx.strokeStyle = "white";
-        this.ctx.strokeRect(s.posX, s.posY, data.width, data.height);
-      } else if (s.type === "ellipse") {
-
-        const data = JSON.parse(s.data);
-
-        this.ctx.beginPath();
-        this.ctx.ellipse(
-          s.posX,
-          s.posY,
-          data.radiusX,
-          data.radiusY,
-          data.angle,
-          0,
-          2 * Math.PI
-        );
-        this.ctx.stroke();
-
-      } else if (s.type === "line") {
-        const data = JSON.parse(s.data);
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(s.posX, s.posY);
-        this.ctx.lineTo(data.endPointX, data.endPointY);
-        this.ctx.stroke();
-      }
-      else if(s.type === "circle"){
-        const data = JSON.parse(s.data);
-
-        this.ctx.beginPath();
-        this.ctx.ellipse(
-          s.posX,
-          s.posY,
-          data.radiusX,
-          data.radiusY,
-          0,
-          0,
-          2 * Math.PI
-        );
-        this.ctx.stroke();
-      }
-      else if(s.type === "pencil"){
-        const data = JSON.parse(s.data);
-
-        drawPencil(s.posX,s.posY,this.ctx,data.points);
-      }
-    });
+  private getSelectedShape(px: number, py: number): Shape | null {
+    for (let i = this.shapes.length - 1; i >= 0; i--) {
+      const s = this.shapes[i];
+      if (s.type === "rectangle" && rectangleCheck(s, px, py)) return s;
+      if (s.type === "circle" && circleCheck(s, px, py)) return s;
+      if (s.type === "ellipse" && ellipseCheck(s, px, py)) return s;
+      if (s.type === "line" && lineCheck(s, px, py)) return s;
+      if (s.type === "pencil" && pencilCheck(s, px, py)) return s;
+    }
+    return null;
   }
 
   handleMouseDown = (event: MouseEvent) => {
-    this.draw = true;
-
     const mousePos = this.getMousePos(event);
-    this.startX = mousePos.x;
-    this.startY = mousePos.y;
 
-    this.points.push({x : this.startX , y : this.startY});
-
-    this.ctx.strokeStyle = "white";
+    if (this.currTool === "select") {
+      const shape = this.getSelectedShape(mousePos.x, mousePos.y);
+      if (shape) {
+        this.selectedShape = shape;
+        this.highlightShape = shape;
+        this.move = true;
+        this.offsetX = mousePos.x - shape.posX;
+        this.offsetY = mousePos.y - shape.posY;
+        this.canvas.style.cursor = "move";
+        this.render();
+      } else {
+        this.selectedShape = null;
+        this.highlightShape = null;
+        this.move = false;
+        this.render();
+      }
+    } else if (this.currTool === "hand") {
+      
+    } else {
+      this.draw = true;
+      this.startX = mousePos.x;
+      this.startY = mousePos.y;
+      this.points = [{ x: this.startX, y: this.startY }];
+      this.ctx.strokeStyle = "white";
+    }
   };
 
   handlemouseMove = (event: MouseEvent) => {
-    if (!this.draw) return;
-
     const mousePos = this.getMousePos(event);
-    const posX = mousePos.x;
-    const posY = mousePos.y;
 
-    this.render();
+    if (this.currTool === "select") {
+      if (this.move && this.selectedShape) {
+        const dx = mousePos.x - this.offsetX - this.selectedShape.posX;
+        const dy = mousePos.y - this.offsetY - this.selectedShape.posY;
+        moveShape(this.selectedShape, dx, dy);
+        this.render();
+      } else {
+        const shape = this.getSelectedShape(mousePos.x, mousePos.y);
+        if (shape) {
+          this.canvas.style.cursor = "pointer";
+          this.highlightShape = shape;
+        } else {
+          this.canvas.style.cursor = "default";
+          this.highlightShape = null;
+        }
+        this.render();
+      }
+    } else if (this.currTool === "hand") {
+       
+    } else {
+      if (!this.draw) return;
+      const posX = mousePos.x;
+      const posY = mousePos.y;
+      this.render();
 
-    if (this.currTool === "rectangle") {
-      const w = posX - this.startX;
-      const h = posY - this.startY;
+      if (this.currTool === "pencil") {
+        this.points.push({ x: posX, y: posY });
+      }
 
-      this.ctx.strokeRect(this.startX, this.startY, w, h);
-    } else if (this.currTool === "ellipse") {
-
-      const props = {
-        startX: this.startX,
-        startY: this.startY,
-        posX,
-        posY,
-        ctx: this.ctx,
-      };
-
-      drawEllipse(props);
-
-    } else if (this.currTool === "line") {
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.startX, this.startY);
-      this.ctx.lineTo(posX, posY);
-      this.ctx.stroke();
-    }
-    else if(this.currTool === "circle"){
-      const dx = posX - this.startX;
-      const dy = posY - this.startY;
-
-      const radiusX = Math.abs(dx)/2;
-      const radiusY = Math.abs(dy)/2;
-
-      const centerX = this.startX + dx/2;
-      const centerY = this.startY + dy/2;
-
-      this.ctx.beginPath();
-      this.ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-      this.ctx.stroke();
-    }
-    else if(this.currTool === "pencil"){
-      this.points.push({x : posX , y : posY});
-
-      drawPencil(this.startX , this.startY , this.ctx , this.points);
+      
+      if (this.currTool === "rectangle") {
+        this.ctx.strokeRect(this.startX, this.startY, posX - this.startX, posY - this.startY);
+      } else if (this.currTool === "line") {
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX, this.startY);
+        this.ctx.lineTo(posX, posY);
+        this.ctx.stroke();
+      } else if (this.currTool === "circle") {
+        const dx = posX - this.startX;
+        const dy = posY - this.startY;
+        this.ctx.beginPath();
+        this.ctx.ellipse(this.startX + dx / 2, this.startY + dy / 2, Math.abs(dx) / 2, Math.abs(dy) / 2, 0, 0, 2 * Math.PI);
+        this.ctx.stroke();
+      } else if (this.currTool === "ellipse") {
+        const dx = posX - this.startX;
+        const dy = posY - this.startY;
+        const rx = Math.sqrt(dx * dx + dy * dy) / 2;
+        const ry = rx * 0.6;
+        const angle = Math.atan2(dy, dx);
+        this.ctx.beginPath();
+        this.ctx.ellipse(this.startX + dx / 2, this.startY + dy / 2, rx, ry, angle, 0, 2 * Math.PI);
+        this.ctx.stroke();
+      } else if (this.currTool === "pencil") {
+        drawPencil(this.startX, this.startY, this.ctx, this.points);
+      }
     }
   };
 
-  handlemouseUp = async (event: MouseEvent) => {
-    this.draw = false;
-
-    const mousePos = this.getMousePos(event);
-    const posX = mousePos.x;
-    const posY = mousePos.y;
-
-    let s: Shape | null = null;
-
-    if (this.currTool === "rectangle") {
-      const w = posX - this.startX;
-      const h = posY - this.startY;
-
-      s = {
-        type: "rectangle",
-        posX: this.startX,
-        posY: this.startY,
-        data: JSON.stringify({
-          width: w,
-          height: h,
-        }),
-      };
-
-    } else if (this.currTool === "ellipse") {
-
-      const props = {
-        startX: this.startX,
-        startY: this.startY,
-        posX,
-        posY,
-        ctx: this.ctx,
-      };
-
-      const {radiusX,radiusY,centerX,centerY,angle} = drawEllipse(props);
-
-      s = {
-        type: "ellipse",
-        posX: centerX,
-        posY: centerY,
-        data: JSON.stringify({
-          angle,
-          radiusX,
-          radiusY,
-        }),
-      };
-
-    } else if (this.currTool === "line") {
-      s = {
-        type: "line",
-        posX: this.startX,
-        posY: this.startY,
-        data: JSON.stringify({
-          endPointX: posX,
-          endPointY: posY,
-        }),
-      };
-    }
-    else if(this.currTool === "circle"){
-      const dx = posX - this.startX;
-      const dy = posY - this.startY;
-
-      const radiusX = Math.abs(dx)/2;
-      const radiusY = Math.abs(dy)/2;
-
-      const centerX = this.startX + dx/2;
-      const centerY = this.startY + dy/2;
-
-      s = {
-        type : "circle",
-        posX : centerX,
-        posY : centerY,
-        data : JSON.stringify({
-          radiusX,
-          radiusY
-        })
+  handlemouseUp = async (_event: MouseEvent) => {
+    if (this.currTool === "select") {
+      if (this.move && this.selectedShape) {
+        this.move = false;
+        this.socket.send(
+          JSON.stringify({
+            type: "update_shape",
+            roomId: this.roomId,
+            shape: this.selectedShape,
+          })
+        );
+        this.selectedShape = null;
+        this.canvas.style.cursor = "default";
       }
-    }
-    else if(this.currTool === "pencil"){
-      s = {
-        type : "pencil",
-        posX : this.startX,
-        posY : this.startY,
-        data : JSON.stringify({points : this.points})
+    } else if (this.currTool === "hand") {
+     
+    } else {
+      this.draw = false;
+      const mousePos = this.getMousePos(_event);
+      const tempId = this.nextTempId--;
+
+      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId);
+      this.points = [];
+
+      if (s) {
+        this.socket.send(
+          JSON.stringify({ type: "add_shape", roomId: this.roomId, shape: s })
+        );
       }
-    }
-
-    this.points = [];
-
-
-    if (s) {
-      this.socket.send(
-        JSON.stringify({
-          type: "add_shape",
-          roomId: this.roomId,
-          shape: s,
-        })
-      );
     }
   };
 
   getMousePos(e: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
   setTool(t: tool) {
+    if (this.currTool === "select") {
+      this.highlightShape = null;
+      this.render();
+    }
     this.currTool = t;
-    if(t === "hand"){
-      this.setCursor("grab");
-    }
-    else if(t === "select"){
-      this.setCursor("default");
-    }
-    else{
-      this.setCursor("crosshair");
-    }
+    if (t === "hand") this.setCursor("grab");
+    else if (t === "select") this.setCursor("default");
+    else this.setCursor("crosshair");
   }
 
   clearCanvas() {
     this.shapes = [];
     this.render();
-    this.socket.send(
-      JSON.stringify({
-        type: "clear_canvas",
-        roomId: this.roomId,
-      })
-    );
+    this.socket.send(JSON.stringify({ type: "clear_canvas", roomId: this.roomId }));
   }
-  setCursor(cursor : string){
+
+  setCursor(cursor: string) {
     this.canvas.style.cursor = cursor;
   }
 
@@ -337,21 +261,5 @@ export class Game {
     this.canvas.removeEventListener("mousedown", this.handleMouseDown);
     this.canvas.removeEventListener("mousemove", this.handlemouseMove);
     this.canvas.removeEventListener("mouseup", this.handlemouseUp);
-  }
-
-}
-
-async function getAllShapes(slug: string) {
-  try {
-    const response = await axios.get(`${BACKEND_URL}/shapes/${slug}`);
-    return response.data.shapes;
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      console.log(err.response?.data.message);
-    } else {
-      console.log(err);
-    }
-
-    return [];
   }
 }

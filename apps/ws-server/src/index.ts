@@ -1,200 +1,62 @@
 import "dotenv/config"
-import { WebSocket, WebSocketServer } from "ws";
-import jwt from "jsonwebtoken"
-import {JWT_SECRET} from "@repo/backend-common/config"
-import {prisma} from "@repo/db/client"
+import { WebSocketServer } from "ws";
+import { checkUser } from "./auth";
+import { socketMap } from "./store";
+import {
+  handleJoinRoom,
+  handleLeaveRoom,
+  handleAddShape,
+  handleUpdateShape,
+  handleClearCanvas,
+  handleDisconnect,
+} from "./handlers";
 
-const wss = new WebSocketServer({port : 8080});
+const wss = new WebSocketServer({ port: 8080 });
 
-function checkUser(token :string) : null | string{
-  try{
-    const decoded = jwt.verify(token,JWT_SECRET);
-
-    if(typeof decoded === "string") return null;
-
-    if(!decoded || !decoded.userId){
-      return null;
-    }
-
-    return decoded.userId;
-  }
-  catch(err){
-    return null;
-  }
-}
-
-//  user -> ws
-const socketMap = new Map<string,WebSocket>();
-
-// room -> users
-const roomsMap = new Map<number,Set<string>>();
-
-interface Join_Leave{
-  type : "join_room" | "leave_room",
-  roomId : number
-}
-
-interface Shape {
-  type : "circle" | "line" | "rectangle",
-  posX  : number,
-  posY  : number
-  data  : string
-}
-
-interface Task{
-  type : "add_shape",
-  roomId : number,
-  shape : Shape
-}
-
-wss.on('connection',(socket,req)=>{
-
+wss.on("connection", (socket, req) => {
   const url = req.url;
-
-  if(!url){
+  if (!url) {
     socket.close();
     return;
   }
 
   const query = url.split("?")[1];
   const queryParams = new URLSearchParams(query);
-  const token = queryParams.get('token') || "";
+  const token = queryParams.get("token") || "";
 
   const userId = checkUser(token);
-
-  if(!userId){
+  if (!userId) {
     socket.close();
     return;
   }
 
-  socketMap.set(userId,socket);
+  socketMap.set(userId, socket);
 
-  socket.on('message',async (data)=>{
-
+  socket.on("message", async (data) => {
     let parsedData: any;
     try {
       parsedData = JSON.parse(data.toString());
-    } catch(error) {
+    } catch {
       return;
     }
 
+    const { type, roomId } = parsedData;
 
-    if(parsedData.type === "join_room"){
-      const roomId = parsedData.roomId;
-
-      if(!roomsMap.get(roomId)) roomsMap.set(roomId,new Set());
-
-      if(roomsMap.get(roomId)?.has(userId)){
-        socket.send(JSON.stringify({
-          type : "server_message",
-          message : "Already Connected"
-        }));
-        return;
-      }
-
-      roomsMap.get(roomId)?.add(userId);
-
-      socket.send(JSON.stringify({
-          type : "server_message",
-          message : "Joined Room"
-        }));
+    if (type === "join_room") {
+      handleJoinRoom(socket, roomId, userId);
+    } else if (type === "leave_room") {
+      handleLeaveRoom(socket, roomId, userId);
+    } else if (type === "add_shape") {
+      await handleAddShape(socket, roomId, parsedData.shape, userId);
+    } else if (type === "update_shape") {
+      await handleUpdateShape(socket, roomId, parsedData.shape);
+    } else if (type === "clear_canvas") {
+      await handleClearCanvas(socket, roomId);
     }
-    else if(parsedData.type === "leave_room"){
-      const roomId = parsedData.roomId;
+  });
 
-      roomsMap.get(roomId)?.delete(userId);
-
-      socket.send(JSON.stringify({
-          type : "server_message",
-          message : "Leaved Room"
-        }));
-
-      socket.close();
-
-    }
-    else if(parsedData.type === "add_shape"){
-      const roomId = parsedData.roomId;
-      const s:Shape = parsedData.shape;
-
-      const users = roomsMap.get(roomId);
-
-      if(!users) return;
-
-      try{
-        const dbShape= await prisma.shape.create({
-          data :{
-            type : s.type,
-            posX : s.posX,
-            posY : s.posY,
-            data : s.data,
-            userId,
-            roomId
-          }
-        })
-
-        users.forEach(u=>{
-          const ws = socketMap.get(u);
-
-          ws?.send(JSON.stringify({
-            type : "shape",
-            data : dbShape
-          }));
-
-        })
-
-      }
-      catch(err){
-        socket.send(JSON.stringify({
-          type : "server_message",
-          message : "DB ERROR"
-        }));
-        socket.close();
-      }
-    }
-    else if(parsedData.type === "clear_canvas"){
-      const roomId = parsedData.roomId;
-      const users = roomsMap.get(roomId);
-
-      if(!users) return;
-
-      try{
-        
-        await prisma.shape.deleteMany({
-          where: { roomId }
-        });
-
-        users.forEach(u=>{
-          const ws = socketMap.get(u);
-          ws?.send(JSON.stringify({
-            type : "clear_canvas",
-            roomId
-          }));
-        });
-      }
-      catch(err){
-        socket.send(JSON.stringify({
-          type : "server_message",
-          message : "DB ERROR"
-        }));
-      }
-    }
-  })
-
-
-  socket.on("close",()=>{
+  socket.on("close", () => {
     socketMap.delete(userId);
-
-    roomsMap.forEach(users=>{
-      users.delete(userId);
-    })
-
-    try {
-      socket.send(JSON.stringify({
-            type : "server_message",
-            message : "Disconnected"
-          }));
-    } catch(e) {
-      // Socket already closed
-    }
-  })
-})
+    handleDisconnect(userId);
+  });
+});
