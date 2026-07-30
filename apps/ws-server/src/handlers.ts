@@ -9,6 +9,7 @@ import {
   getDbId,
   storeShapeMapping,
   clearRoomMappings,
+  removeShapeMapping,
   removeUserFromAllRooms,
 } from "./store";
 
@@ -89,6 +90,21 @@ export async function handleUpdateShape(
     });
 
     broadcastToRoom(roomId, { type: "update_shape", data: updatedShape });
+  } catch (err) {
+    socket.send(JSON.stringify({ type: "server_message", message: "DB ERROR" }));
+  }
+}
+
+export async function handleDeleteShape(socket: WebSocket, roomId: number, shapeId: number) {
+  const users = getRoomUsers(roomId);
+  if (!users) return;
+
+  const dbId = getDbId(shapeId);
+
+  try {
+    await prisma.shape.delete({ where: { id: dbId } });
+    removeShapeMapping(shapeId);
+    broadcastToRoom(roomId, { type: "delete_shape", data: { id: dbId } });
   } catch (err) {
     socket.send(JSON.stringify({ type: "server_message", message: "DB ERROR" }));
   }

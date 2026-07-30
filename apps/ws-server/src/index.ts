@@ -7,6 +7,7 @@ import {
   handleLeaveRoom,
   handleAddShape,
   handleUpdateShape,
+  handleDeleteShape,
   handleClearCanvas,
   handleDisconnect,
 } from "./handlers";
@@ -50,6 +51,8 @@ wss.on("connection", (socket, req) => {
       await handleAddShape(socket, roomId, parsedData.shape, userId);
     } else if (type === "update_shape") {
       await handleUpdateShape(socket, roomId, parsedData.shape);
+    } else if (type === "delete_shape") {
+      await handleDeleteShape(socket, roomId, parsedData.shapeId);
     } else if (type === "clear_canvas") {
       await handleClearCanvas(socket, roomId);
     }

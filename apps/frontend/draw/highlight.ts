@@ -1,7 +1,7 @@
 import { Shape } from "./types";
 
-export function drawHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
-  ctx.strokeStyle = "#6366F1";
+function drawHighlightOutline(ctx: CanvasRenderingContext2D, s: Shape, color: string) {
+  ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.setLineDash([4, 2]);
 
@@ -30,7 +30,7 @@ export function drawHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
     const midY = (y1 + y2) / 2;
     const length = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
     const angle = Math.atan2(y2 - y1, x2 - x1);
-
+    
     ctx.save();
     ctx.translate(midX, midY);
     ctx.rotate(angle);
@@ -42,7 +42,7 @@ export function drawHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
     if (data.points && data.points.length > 0) {
       let minX = s.posX, maxX = s.posX;
       let minY = s.posY, maxY = s.posY;
-      data.points.forEach((p: {x: number, y: number}) => {
+      data.points.forEach((p: { x: number; y: number }) => {
         minX = Math.min(minX, p.x);
         maxX = Math.max(maxX, p.x);
         minY = Math.min(minY, p.y);
@@ -55,4 +55,12 @@ export function drawHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
   ctx.setLineDash([]);
   ctx.lineWidth = 1;
   ctx.strokeStyle = "white";
+}
+
+export function drawHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
+  drawHighlightOutline(ctx, s, "#6366F1");
+}
+
+export function drawEraserHighlight(ctx: CanvasRenderingContext2D, s: Shape) {
+  drawHighlightOutline(ctx, s, "#ff4444");
 }

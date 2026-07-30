@@ -52,6 +52,10 @@ export function clearRoomMappings(roomId: number) {
   }
 }
 
+export function removeShapeMapping(shapeId: number) {
+  shapeIdMap.delete(shapeId);
+}
+
 export function removeUserFromAllRooms(userId: string) {
   roomsMap.forEach((users) => {
     users.delete(userId);

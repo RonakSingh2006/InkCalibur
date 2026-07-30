@@ -6,4 +6,4 @@ export interface Shape {
   data: string;
 }
 
-export type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select";
+export type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select" | "eraser";
