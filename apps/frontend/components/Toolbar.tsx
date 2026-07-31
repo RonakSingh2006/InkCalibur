@@ -31,7 +31,7 @@ const tools: ToolItem[] = [
   { id: "line", label: "Line", icon: (s, c) => <Line size={s} color={c} /> },
   { id: "pencil", label: "Pencil", icon: (s, c) => <Pencil size={s} color={c} /> },
   { id: "eraser", label: "Eraser", icon: (s, c) => <Eraser size={s} color={c} /> },
-  { id: "hand", label: "Hand", icon: (s, c) => <Hand size={s} color={c} /> },
+  { id: "hand", label: "Panning", icon: (s, c) => <Hand size={s} color={c} /> },
   { id: "select" , label: "Select" , icon: (s,c) => <Select size={s} color={c} />},
 ];
 

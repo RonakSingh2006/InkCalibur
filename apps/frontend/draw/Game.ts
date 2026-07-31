@@ -2,7 +2,6 @@ import { Shape, tool } from "./types";
 import { rectangleCheck, circleCheck, ellipseCheck, lineCheck, pencilCheck } from "./shapeChecks";
 import { drawHighlight, drawEraserHighlight } from "./highlight";
 import { drawShape } from "./shapeRenderer";
-import { drawPencil } from "./draw";
 import { createShape } from "./shapeFactory";
 import { moveShape } from "./moveHandler";
 import { getAllShapes } from "./api";
@@ -25,6 +24,11 @@ export class Game {
   private offsetY: number;
   private highlightShape: Shape | null;
   private nextTempId: number;
+  private panOffsetX : number;
+  private panOffsetY : number;
+  private panning : boolean;
+  private panStartX: number;
+  private panStartY: number;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -50,6 +54,12 @@ export class Game {
     this.highlightShape = null;
     this.nextTempId = -1;
     this.canvas.style.cursor = "crosshair";
+    this.panOffsetX = 0;
+    this.panOffsetY = 0;
+    this.panning = false;
+    this.panStartX = 0;
+    this.panStartY = 0;
+    this.loadPanOffset();
 
     this.init();
     this.initHandlers();
@@ -95,8 +105,13 @@ export class Game {
   }
 
   render() {
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.translate(this.panOffsetX,this.panOffsetY);
+    this.ctx.strokeStyle = "white";
     this.shapes.forEach((s) => drawShape(this.ctx, s));
+
     if (this.highlightShape) {
       if (this.currTool === "eraser") {
         drawEraserHighlight(this.ctx, this.highlightShape);
@@ -104,6 +119,7 @@ export class Game {
         drawHighlight(this.ctx, this.highlightShape);
       }
     }
+    this.ctx.restore();
   }
 
   private getSelectedShape(px: number, py: number): Shape | null {
@@ -159,7 +175,11 @@ export class Game {
         this.render();
       }
     } else if (this.currTool === "hand") {
-      
+      this.setCursor("grabbing");
+      const rect = this.canvas.getBoundingClientRect();
+      this.panStartX = event.clientX - rect.left;
+      this.panStartY = event.clientY - rect.top;
+      this.panning = true;
     } else {
       this.draw = true;
       this.startX = mousePos.x;
@@ -200,7 +220,18 @@ export class Game {
         this.render();
       }
     } else if (this.currTool === "hand") {
-      
+      if(this.panning){
+        const rect = this.canvas.getBoundingClientRect();
+        const screenX = event.clientX - rect.left;
+        const screenY = event.clientY - rect.top;
+        this.panOffsetX += screenX - this.panStartX;
+        this.panOffsetY += screenY - this.panStartY;
+        this.panStartX = screenX;
+        this.panStartY = screenY;
+        this.savePanOffset();
+
+        this.render();
+      }
     } else {
       if (!this.draw) return;
       const posX = mousePos.x;
@@ -212,17 +243,17 @@ export class Game {
       }
 
       if (this.currTool === "rectangle") {
-        this.ctx.strokeRect(this.startX, this.startY, posX - this.startX, posY - this.startY);
+        this.ctx.strokeRect(this.startX + this.panOffsetX, this.startY + this.panOffsetY, posX - this.startX, posY - this.startY);
       } else if (this.currTool === "line") {
         this.ctx.beginPath();
-        this.ctx.moveTo(this.startX, this.startY);
-        this.ctx.lineTo(posX, posY);
+        this.ctx.moveTo(this.startX + this.panOffsetX, this.startY + this.panOffsetY);
+        this.ctx.lineTo(posX + this.panOffsetX, posY + this.panOffsetY);
         this.ctx.stroke();
       } else if (this.currTool === "circle") {
         const dx = posX - this.startX;
         const dy = posY - this.startY;
         this.ctx.beginPath();
-        this.ctx.ellipse(this.startX + dx / 2, this.startY + dy / 2, Math.abs(dx) / 2, Math.abs(dy) / 2, 0, 0, 2 * Math.PI);
+        this.ctx.ellipse(this.startX + dx / 2 + this.panOffsetX, this.startY + dy / 2 + this.panOffsetY, Math.abs(dx) / 2, Math.abs(dy) / 2, 0, 0, 2 * Math.PI);
         this.ctx.stroke();
       } else if (this.currTool === "ellipse") {
         const dx = posX - this.startX;
@@ -231,10 +262,15 @@ export class Game {
         const ry = rx * 0.6;
         const angle = Math.atan2(dy, dx);
         this.ctx.beginPath();
-        this.ctx.ellipse(this.startX + dx / 2, this.startY + dy / 2, rx, ry, angle, 0, 2 * Math.PI);
+        this.ctx.ellipse(this.startX + dx / 2 + this.panOffsetX, this.startY + dy / 2 + this.panOffsetY, rx, ry, angle, 0, 2 * Math.PI);
         this.ctx.stroke();
       } else if (this.currTool === "pencil") {
-        drawPencil(this.startX, this.startY, this.ctx, this.points);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX + this.panOffsetX, this.startY + this.panOffsetY);
+        this.points.forEach((p) => {
+          this.ctx.lineTo(p.x + this.panOffsetX, p.y + this.panOffsetY);
+        });
+        this.ctx.stroke();
       }
     }
   };
@@ -254,7 +290,8 @@ export class Game {
         this.setCursor("default");
       }
     } else if (this.currTool === "hand") {
-      // future
+      this.setCursor("grab");
+      this.panning = false;
     } else {
       this.draw = false;
       const mousePos = this.getMousePos(_event);
@@ -273,7 +310,7 @@ export class Game {
 
   getMousePos(e: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return { x: e.clientX - rect.left - this.panOffsetX, y: e.clientY - rect.top - this.panOffsetY };
   }
 
   setTool(t: tool) {
@@ -294,6 +331,30 @@ export class Game {
     this.selectedShape = null;
     this.render();
     this.socket.send(JSON.stringify({ type: "clear_canvas", roomId: this.roomId }));
+  }
+
+  private loadPanOffset() {
+    try {
+      const saved = localStorage.getItem(`panOffset_${this.slug}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.panOffsetX = parsed.x || 0;
+        this.panOffsetY = parsed.y || 0;
+      }
+    } catch (e) {
+        console.log(e);
+    }
+  }
+
+  private savePanOffset() {
+    try {
+      localStorage.setItem(
+        `panOffset_${this.slug}`,
+        JSON.stringify({ x: this.panOffsetX, y: this.panOffsetY })
+      );
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   setCursor(cursor: string) {
