@@ -29,6 +29,7 @@ export class Game {
   private panning : boolean;
   private panStartX: number;
   private panStartY: number;
+  private strokeColor: string;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -59,6 +60,7 @@ export class Game {
     this.panning = false;
     this.panStartX = 0;
     this.panStartY = 0;
+    this.strokeColor = "white";
     this.loadPanOffset();
 
     this.init();
@@ -109,7 +111,7 @@ export class Game {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.translate(this.panOffsetX,this.panOffsetY);
-    this.ctx.strokeStyle = "white";
+    this.ctx.strokeStyle = this.strokeColor;
     this.shapes.forEach((s) => drawShape(this.ctx, s));
 
     if (this.highlightShape) {
@@ -185,7 +187,7 @@ export class Game {
       this.startX = mousePos.x;
       this.startY = mousePos.y;
       this.points = [{ x: this.startX, y: this.startY }];
-      this.ctx.strokeStyle = "white";
+      this.ctx.strokeStyle = this.strokeColor;
     }
   };
 
@@ -297,7 +299,7 @@ export class Game {
       const mousePos = this.getMousePos(_event);
       const tempId = this.nextTempId--;
 
-      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId);
+      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId, this.strokeColor);
       this.points = [];
 
       if (s) {
@@ -323,6 +325,11 @@ export class Game {
     else if (t === "select") this.setCursor("default");
     else if (t === "eraser") this.setCursor("crosshair");
     else this.setCursor("crosshair");
+  }
+
+  setStrokeColor(color: string) {
+    this.strokeColor = color;
+    this.ctx.strokeStyle = color;
   }
 
   clearCanvas() {

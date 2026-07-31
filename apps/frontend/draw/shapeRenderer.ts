@@ -2,9 +2,9 @@ import { Shape } from "./types";
 import { drawPencil } from "./draw";
 
 export function drawShape(ctx: CanvasRenderingContext2D, s: Shape) {
+  ctx.strokeStyle = s.strokeColor || "white";
   if (s.type === "rectangle") {
     const data = JSON.parse(s.data);
-    ctx.strokeStyle = "white";
     ctx.strokeRect(s.posX, s.posY, data.width, data.height);
   } else if (s.type === "ellipse") {
     const data = JSON.parse(s.data);

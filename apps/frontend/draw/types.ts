@@ -4,6 +4,7 @@ export interface Shape {
   posX: number;
   posY: number;
   data: string;
+  strokeColor?: string;
 }
 
 export type tool = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select" | "eraser";

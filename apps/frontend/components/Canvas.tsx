@@ -14,12 +14,17 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shape, setShape] = useState<Shape>("rectangle");
+  const [color, setColor] = useState<string>("#ffffff");
   const { size } = useWindowDimensions();
   const gameRef = useRef<Game | null>(null);
 
   useEffect(() => {
     gameRef.current?.setTool(shape);
   }, [shape]);
+
+  useEffect(() => {
+    gameRef.current?.setStrokeColor(color);
+  }, [color]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -69,6 +74,8 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
       <Toolbar
         activeTool={shape}
         onToolChange={setShape}
+        color={color}
+        onColorChange={setColor}
       />
 
       {/* Top-right action buttons */}

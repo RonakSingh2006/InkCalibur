@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 import Square from "@/icons/Sqaure";
 import Circle from "@/icons/Circle";
 import Line from "@/icons/Line";
@@ -14,6 +14,8 @@ type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "
 interface ToolbarProps {
   activeTool: Shape;
   onToolChange: (tool: Shape) => void;
+  color: string;
+  onColorChange: (color: string) => void;
 }
 
 interface ToolItem {
@@ -53,7 +55,35 @@ function ToolButton({ tool, activeTool, onToolChange }: { tool: ToolItem; active
   );
 }
 
-export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
+function ColorPicker({ color, onColorChange }: { color: string; onColorChange: (color: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="relative group">
+      <button
+        className="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:bg-zinc-800"
+        onClick={() => inputRef.current?.click()}
+      >
+        <div
+          className="w-5.5 h-5.5 rounded-md border-2 border-zinc-600"
+          style={{ backgroundColor: color }}
+        />
+      </button>
+      <input
+        ref={inputRef}
+        type="color"
+        value={color}
+        onChange={(e) => onColorChange(e.target.value)}
+        className="absolute opacity-0 w-0 h-0 pointer-events-none"
+      />
+      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        Stroke Color
+      </div>
+    </div>
+  );
+}
+
+export default function Toolbar({ activeTool, onToolChange, color, onColorChange }: ToolbarProps) {
   return (
     <div className="fixed top-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 shadow-2xl">
       <div className="flex items-center gap-1">
@@ -61,6 +91,8 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
           <ToolButton key={tool.id} tool={tool} activeTool={activeTool} onToolChange={onToolChange} />
         ))}
       </div>
+      <div className="w-px h-6 bg-zinc-700 mx-1" />
+      <ColorPicker color={color} onColorChange={onColorChange} />
     </div>
   );
 }

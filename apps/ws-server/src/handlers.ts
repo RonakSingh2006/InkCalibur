@@ -19,6 +19,7 @@ interface Shape {
   posX: number;
   posY: number;
   data: string;
+  strokeColor?: string;
 }
 
 export function handleJoinRoom(socket: WebSocket, roomId: number, userId: string) {
@@ -55,6 +56,7 @@ export async function handleAddShape(
         posX: shape.posX,
         posY: shape.posY,
         data: shape.data,
+        strokeColor: shape.strokeColor || null,
         userId,
         roomId,
       },
@@ -86,6 +88,7 @@ export async function handleUpdateShape(
         posX: shape.posX,
         posY: shape.posY,
         data: shape.data,
+        strokeColor: shape.strokeColor || null,
       },
     });
 
