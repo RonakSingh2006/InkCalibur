@@ -7,10 +7,11 @@ import { useRef, useState } from "react";
 import InputWrapper from "@/components/InputWrapper";
 import axios from "axios";
 import { BACKEND_URL } from "@repo/common/config";
+import {z} from "zod"
 
 export default function SignIn() {
   const router = useRouter();
-  const usernameRef = useRef<HTMLInputElement>(null);
+  const loginRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,8 +32,8 @@ export default function SignIn() {
         </h2>
 
         <div className="flex flex-col gap-4">
-          <InputWrapper error={errors.username}>
-            <Input placeholder="Username" type="text" ref={usernameRef} />
+          <InputWrapper error={errors.login}>
+            <Input placeholder="Email or Username" type="text" ref={loginRef} />
           </InputWrapper>
 
           <InputWrapper error={errors.password}>
@@ -47,18 +48,20 @@ export default function SignIn() {
             text="Sign In"
             auth={true}
             onClick={async () => {
-              const username = usernameRef.current?.value;
+              const login = loginRef.current?.value;
               const password = passwordRef.current?.value;
 
-              const authData = { username, password };
+              const authData = { login, password };
               const result = AuthSchema.safeParse(authData);
 
               if (!result.success) {
-                const fieldErrors = result.error.flatten().fieldErrors;
+                const tree = z.treeifyError(result.error);
+
                 setErrors({
-                  username: fieldErrors.username?.[0] ?? "",
-                  password: fieldErrors.password?.[0] ?? "",
+                  login: tree.properties?.login?.errors[0] ?? "",
+                  password: tree.properties?.password?.errors[0] ?? "",
                 });
+
                 return;
               }
 
@@ -69,9 +72,9 @@ export default function SignIn() {
                 router.push("/dashboard");
               } catch (err) {
                 if (axios.isAxiosError(err)) {
-                  setErrors({ username: err.response?.data.message });
+                  setErrors({ login: err.response?.data.message || "Sign in failed" });
                 } else {
-                  setErrors({ username: "Unexpected Error" });
+                  setErrors({ login: "Unexpected Error" });
                 }
               }
             }}
@@ -81,7 +84,7 @@ export default function SignIn() {
             className="text-sm text-zinc-400 hover:text-indigo-400 transition-colors cursor-pointer"
             onClick={() => router.push("/signup")}
           >
-            Don&apos;t have an account? Sign up
+            {"Don't have an account? Sign up"}
           </button>
         </div>
       </div>
