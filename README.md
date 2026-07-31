@@ -11,6 +11,7 @@
     <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql" alt="PostgreSQL" />
     <img src="https://img.shields.io/badge/WebSocket-实时-4FC08D?style=flat" alt="WebSocket" />
     <img src="https://img.shields.io/badge/Turborepo-2.6-EF4444?style=flat&logo=turborepo" alt="Turborepo" />
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" />
   </p>
 
   <p>
@@ -42,8 +43,24 @@ Built as a **scalable monorepo** using **Turborepo** and **pnpm**, combining a *
     <td>Create and join separate drawing rooms with unique slugs</td>
   </tr>
   <tr>
-    <td>🔐 <b>Authentication</b></td>
-    <td>JWT-based auth with bcrypt password hashing</td>
+    <td>🔐 <b>Email OTP Authentication</b></td>
+    <td>Secure signup with email verification via 6-digit OTP (5 min expiry) and email/username signin</td>
+  </tr>
+  <tr>
+    <td>🎨 <b>Versatile Tools</b></td>
+    <td>Rectangle, circle, ellipse, line, pencil, eraser, select & move, pan & zoom</td>
+  </tr>
+  <tr>
+    <td>✏️ <b>Stroke Control</b></td>
+    <td>Adjustable stroke width (1–12px) and stroke color for every shape</td>
+  </tr>
+  <tr>
+    <td>📥 <b>Export & Clear</b></td>
+    <td>Download canvas as PNG image or clear the canvas to start fresh</td>
+  </tr>
+  <tr>
+    <td>🔍 <b>Room Search</b></td>
+    <td>Search rooms by name, date, year, or month with debounced search</td>
   </tr>
   <tr>
     <td>📦 <b>Type Safety</b></td>
@@ -97,7 +114,7 @@ Browser ──HTTP──> http-server:3001 ──Prisma──> PostgreSQL (Neon)
 |----------|-----------|
 | **Monorepo** | Turborepo + pnpm workspaces |
 | **Frontend** | Next.js 16, React 19, Tailwind CSS 4 |
-| **Backend API** | Express 5, JWT, bcryptjs |
+| **Backend API** | Express 5, JWT, bcryptjs, Resend (email) |
 | **WebSocket** | ws (Node.js WebSocket library) |
 | **Database** | PostgreSQL 16 (Neon) |
 | **ORM** | Prisma 7 (with Prisma Adapter for PostgreSQL) |
@@ -131,7 +148,9 @@ pnpm install
 
 # 3. Set up environment variables
 cp .env.prod.example .env
-# Edit .env with your DATABASE_URL
+# Edit .env with your DATABASE_URL and RESEND_API_KEY
+#   DATABASE_URL=postgresql://user:password@host:5432/dbname
+#   RESEND_API_KEY=re_your_resend_api_key
 
 # 4. Generate Prisma client & run migrations
 pnpm run db:generate
@@ -217,12 +236,17 @@ pnpm turbo run prisma:migrate
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/signup` | Create a new user |
-| POST | `/signin` | Sign in and receive JWT |
-| GET | `/roomId/:slug` | Get room ID by slug |
-| GET | `/chats/:roomId` | Get room chat history |
-| GET | `/shapes/:slug` | Get shapes for a room |
+| POST | `/create-otp` | Send a 6-digit OTP to an email address |
+| POST | `/verify-otp` | Verify the OTP sent to an email address |
+| POST | `/signup` | Create a new user (with email, name, username, password) |
+| POST | `/signin` | Sign in with email or username and receive JWT |
+| GET | `/me` | Get current user's details |
+| GET | `/rooms` | Get all rooms |
+| GET | `/rooms/search?q=` | Search rooms by name or date |
 | POST | `/room` | Create a new room |
+| DELETE | `/room/:slug` | Delete a room |
+| GET | `/roomId/:slug` | Get room ID by slug |
+| GET | `/shapes/:slug` | Get shapes for a room |
 
 ---
 
