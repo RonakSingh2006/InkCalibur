@@ -43,6 +43,7 @@ jobs:
             curl -O https://raw.githubusercontent.com/RonakSingh2006/InkCalibur/main/docker-compose.prod.yml
 
             echo 'DATABASE_URL=${{ secrets.DATABASE_URL }}' > .env
+            echo 'RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}' >> .env
 
             sudo docker compose -f docker-compose.prod.yml down || true
 
