@@ -49,7 +49,7 @@ router.post("/create-otp", async (req, res) => {
 
     
     await resend.emails.send({
-      from: "InkCalibur <onboarding@resend.dev>",
+      from: "InkCalibur <auth@ronaksingh.me>",
       to: [email],
       subject: "Your InkCalibur OTP Code",
       html: `<div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto;">
