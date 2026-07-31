@@ -11,6 +11,7 @@ model User{
   id        String     @id @default(uuid())
   username  String     @unique
   password  String
+  email     String
   name      String
   avatar    String?
 
@@ -42,4 +43,12 @@ model Shape{
 
   room      Room      @relation(fields: [roomId] , references: [id] , onDelete: Cascade)
   user      User      @relation(fields: [userId] , references: [id] , onDelete: Cascade)
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  expiry    DateTime
+  createdAt DateTime @default(now())
 }
