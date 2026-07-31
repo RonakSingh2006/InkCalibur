@@ -78,32 +78,67 @@ Built as a **scalable monorepo** using **Turborepo** and **pnpm**, combining a *
 
 ### Monorepo Structure
 
-```
-InkCalibur/
-├── apps/
-│   ├── frontend/          # Next.js client (port 3000)
-│   ├── http-server/       # REST API - Express (port 3001)
-│   └── ws-server/         # WebSocket server (port 8080)
-│
-├── packages/
-│   ├── db/                # Prisma schema, migrations, client
-│   ├── common/            # Shared types, Zod schemas, config
-│   ├── backend-common/    # Shared backend utilities
-│   ├── ui/                # Shared React components
-│   ├── eslint-config/     # Centralized ESLint config
-│   └── typescript-config/ # Shared TS config
-│
-├── docker/                # Dockerfiles for each service
-├── docker-compose.yml     # Local development compose
-├── docker-compose.prod.yml# Production compose (EC2)
+```mermaid
+graph TD
+    subgraph InkCalibur["InkCalibur Monorepo"]
+        subgraph Apps["apps/"]
+            FE["frontend<br/>Next.js client<br/>(port 3000)"]
+            HTTP["http-server<br/>REST API - Express<br/>(port 3001)"]
+            WS["ws-server<br/>WebSocket server<br/>(port 8080)"]
+        end
+
+        subgraph Packages["packages/"]
+            DB["db<br/>Prisma schema, migrations, client"]
+            COMMON["common<br/>Shared types, Zod schemas, config"]
+            BC["backend-common<br/>Shared backend utilities"]
+            UI["ui<br/>Shared React components"]
+            ESLINT["eslint-config<br/>Centralized ESLint config"]
+            TS["typescript-config<br/>Shared TS config"]
+        end
+
+        subgraph Docker["docker/"]
+            DF["Dockerfiles for each service"]
+            DC["docker-compose.yml<br/>Local development"]
+            DCP["docker-compose.prod.yml<br/>Production (EC2)"]
+        end
+    end
+
+    FE --> COMMON
+    HTTP --> COMMON
+    HTTP --> BC
+    WS --> BC
+    HTTP --> DB
+    WS --> DB
+    FE --> UI
+    FE --> ESLINT
+    HTTP --> ESLINT
+    WS --> ESLINT
+    FE --> TS
+    HTTP --> TS
+    WS --> TS
 ```
 
 ### Data Flow
 
-```
-Browser ──HTTP──> http-server:3001 ──Prisma──> PostgreSQL (Neon)
-  │                                                   
-  └──────WebSocket──> ws-server:8080 ──Prisma──> PostgreSQL (Neon)
+```mermaid
+flowchart LR
+    subgraph Client["Browser"]
+        FE["Next.js Frontend<br/>(port 3000)"]
+    end
+
+    subgraph Servers["Backend Servers"]
+        HTTP["http-server<br/>REST API<br/>(port 3001)"]
+        WS["ws-server<br/>WebSocket<br/>(port 8080)"]
+    end
+
+    subgraph Database["Database"]
+        PG[("PostgreSQL<br/>(Neon)")]
+    end
+
+    FE -- "HTTP / REST" --> HTTP
+    FE -- "WebSocket" --> WS
+    HTTP -- "Prisma ORM" --> PG
+    WS -- "Prisma ORM" --> PG
 ```
 
 ---
@@ -198,18 +233,26 @@ pnpm turbo dev --filter=ws-server
 
 ### Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     Docker Hub                          │
-│  ronaksingh2006/inkcalibur-{http-server,ws-server,frontend} │
-└─────────────────────────────────────────────────────────┘
-          ▲ push                    │ pull
-          │                         ▼
-┌──────────────────┐    ┌──────────────────────┐
-│   Local Machine   │    │   EC2 Production      │
-│   (Build & Push)  │    │   (Pull & Run)        │
-│  docker-compose.yml│   │  docker-compose.prod.yml│
-└──────────────────┘    └──────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Local["Local Machine"]
+        BUILD["Build & Push Images"]
+        DC["docker-compose.yml"]
+    end
+
+    subgraph Hub["Docker Hub"]
+        IMAGES["ronaksingh2006/inkcalibur-<br/>{http-server, ws-server, frontend}"]
+    end
+
+    subgraph EC2["EC2 Production"]
+        PULL["Pull & Run Images"]
+        DCP["docker-compose.prod.yml"]
+    end
+
+    BUILD -- "docker push" --> IMAGES
+    IMAGES -- "docker pull" --> PULL
+    DC --> BUILD
+    DCP --> PULL
 ```
 
 ## 🗄️ Database
