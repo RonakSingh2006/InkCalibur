@@ -16,6 +16,8 @@ interface ToolbarProps {
   onToolChange: (tool: Shape) => void;
   color: string;
   onColorChange: (color: string) => void;
+  scale: number;
+  onScaleChange: (scale: number) => void;
 }
 
 interface ToolItem {
@@ -25,6 +27,9 @@ interface ToolItem {
 }
 
 const TOOL_SIZE = 22;
+const ZOOM_STEP = 0.1;
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 10;
 
 const tools: ToolItem[] = [
   { id: "rectangle", label: "Rectangle", icon: (s, c) => <Square size={s} color={c} /> },
@@ -83,7 +88,50 @@ function ColorPicker({ color, onColorChange }: { color: string; onColorChange: (
   );
 }
 
-export default function Toolbar({ activeTool, onToolChange, color, onColorChange }: ToolbarProps) {
+function ZoomControls({ scale, onScaleChange }: { scale: number; onScaleChange: (scale: number) => void }) {
+  const zoomPercent = Math.round(scale * 100);
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="relative group">
+        <button
+          className="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-lg font-bold leading-none"
+          onClick={() => onScaleChange(Math.max(MIN_ZOOM, scale - ZOOM_STEP))}
+          disabled={scale <= MIN_ZOOM}
+        >
+          −
+        </button>
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          Zoom Out
+        </div>
+      </div>
+
+      <div className="relative group">
+        <span className="px-2 py-1 text-xs text-zinc-400 font-mono min-w-12 text-center select-none">
+          {zoomPercent}%
+        </span>
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          Zoom Level
+        </div>
+      </div>
+
+      <div className="relative group">
+        <button
+          className="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-lg font-bold leading-none"
+          onClick={() => onScaleChange(Math.min(MAX_ZOOM, scale + ZOOM_STEP))}
+          disabled={scale >= MAX_ZOOM}
+        >
+          +
+        </button>
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          Zoom In
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Toolbar({ activeTool, onToolChange, color, onColorChange, scale, onScaleChange }: ToolbarProps) {
   return (
     <div className="fixed top-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 shadow-2xl">
       <div className="flex items-center gap-1">
@@ -93,6 +141,8 @@ export default function Toolbar({ activeTool, onToolChange, color, onColorChange
       </div>
       <div className="w-px h-6 bg-zinc-700 mx-1" />
       <ColorPicker color={color} onColorChange={onColorChange} />
+      <div className="w-px h-6 bg-zinc-700 mx-1" />
+      <ZoomControls scale={scale} onScaleChange={onScaleChange} />
     </div>
   );
 }

@@ -30,6 +30,7 @@ export class Game {
   private panStartX: number;
   private panStartY: number;
   private strokeColor: string;
+  private scale: number;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -61,6 +62,7 @@ export class Game {
     this.panStartX = 0;
     this.panStartY = 0;
     this.strokeColor = "white";
+    this.scale = 1;
     this.loadPanOffset();
 
     this.init();
@@ -110,7 +112,12 @@ export class Game {
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.translate(this.panOffsetX,this.panOffsetY);
+    const cx = this.canvas.width / 2;
+    const cy = this.canvas.height / 2;
+    this.ctx.translate(this.panOffsetX, this.panOffsetY);
+    this.ctx.translate(cx, cy);
+    this.ctx.scale(this.scale, this.scale);
+    this.ctx.translate(-cx, -cy);
     this.ctx.strokeStyle = this.strokeColor;
     this.shapes.forEach((s) => drawShape(this.ctx, s));
 
@@ -244,18 +251,29 @@ export class Game {
         this.points.push({ x: posX, y: posY });
       }
 
+      const cx = this.canvas.width / 2;
+      const cy = this.canvas.height / 2;
+      const toScreenX = (wx: number) => (wx - cx) * this.scale + cx + this.panOffsetX;
+      const toScreenY = (wy: number) => (wy - cy) * this.scale + cy + this.panOffsetY;
+      const sStartX = toScreenX(this.startX);
+      const sStartY = toScreenY(this.startY);
+      const sPosX = toScreenX(posX);
+      const sPosY = toScreenY(posY);
+
       if (this.currTool === "rectangle") {
-        this.ctx.strokeRect(this.startX + this.panOffsetX, this.startY + this.panOffsetY, posX - this.startX, posY - this.startY);
+        this.ctx.strokeRect(sStartX, sStartY, sPosX - sStartX, sPosY - sStartY);
       } else if (this.currTool === "line") {
         this.ctx.beginPath();
-        this.ctx.moveTo(this.startX + this.panOffsetX, this.startY + this.panOffsetY);
-        this.ctx.lineTo(posX + this.panOffsetX, posY + this.panOffsetY);
+        this.ctx.moveTo(sStartX, sStartY);
+        this.ctx.lineTo(sPosX, sPosY);
         this.ctx.stroke();
       } else if (this.currTool === "circle") {
         const dx = posX - this.startX;
         const dy = posY - this.startY;
+        const centerX = this.startX + dx / 2;
+        const centerY = this.startY + dy / 2;
         this.ctx.beginPath();
-        this.ctx.ellipse(this.startX + dx / 2 + this.panOffsetX, this.startY + dy / 2 + this.panOffsetY, Math.abs(dx) / 2, Math.abs(dy) / 2, 0, 0, 2 * Math.PI);
+        this.ctx.ellipse(toScreenX(centerX), toScreenY(centerY), Math.abs(dx) / 2 * this.scale, Math.abs(dy) / 2 * this.scale, 0, 0, 2 * Math.PI);
         this.ctx.stroke();
       } else if (this.currTool === "ellipse") {
         const dx = posX - this.startX;
@@ -263,14 +281,16 @@ export class Game {
         const rx = Math.sqrt(dx * dx + dy * dy) / 2;
         const ry = rx * 0.6;
         const angle = Math.atan2(dy, dx);
+        const centerX = this.startX + dx / 2;
+        const centerY = this.startY + dy / 2;
         this.ctx.beginPath();
-        this.ctx.ellipse(this.startX + dx / 2 + this.panOffsetX, this.startY + dy / 2 + this.panOffsetY, rx, ry, angle, 0, 2 * Math.PI);
+        this.ctx.ellipse(toScreenX(centerX), toScreenY(centerY), rx * this.scale, ry * this.scale, angle, 0, 2 * Math.PI);
         this.ctx.stroke();
       } else if (this.currTool === "pencil") {
         this.ctx.beginPath();
-        this.ctx.moveTo(this.startX + this.panOffsetX, this.startY + this.panOffsetY);
+        this.ctx.moveTo(sStartX, sStartY);
         this.points.forEach((p) => {
-          this.ctx.lineTo(p.x + this.panOffsetX, p.y + this.panOffsetY);
+          this.ctx.lineTo(toScreenX(p.x), toScreenY(p.y));
         });
         this.ctx.stroke();
       }
@@ -312,7 +332,14 @@ export class Game {
 
   getMousePos(e: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left - this.panOffsetX, y: e.clientY - rect.top - this.panOffsetY };
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+    const cx = this.canvas.width / 2;
+    const cy = this.canvas.height / 2;
+    return {
+      x: (sx - this.panOffsetX - cx) / this.scale + cx,
+      y: (sy - this.panOffsetY - cy) / this.scale + cy,
+    };
   }
 
   setTool(t: tool) {
@@ -332,6 +359,16 @@ export class Game {
     this.ctx.strokeStyle = color;
   }
 
+  setScale(scale: number) {
+    this.scale = Math.max(0.1, Math.min(10, scale));
+    this.savePanOffset();
+    this.render();
+  }
+
+  getScale() {
+    return this.scale;
+  }
+
   clearCanvas() {
     this.shapes = [];
     this.highlightShape = null;
@@ -347,6 +384,7 @@ export class Game {
         const parsed = JSON.parse(saved);
         this.panOffsetX = parsed.x || 0;
         this.panOffsetY = parsed.y || 0;
+        this.scale = parsed.scale || 1;
       }
     } catch (e) {
         console.log(e);
@@ -357,7 +395,7 @@ export class Game {
     try {
       localStorage.setItem(
         `panOffset_${this.slug}`,
-        JSON.stringify({ x: this.panOffsetX, y: this.panOffsetY })
+        JSON.stringify({ x: this.panOffsetX, y: this.panOffsetY, scale: this.scale })
       );
     } catch (e) {
       console.log(e);

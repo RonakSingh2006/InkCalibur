@@ -128,7 +128,7 @@ export default function DashBoard() {
       </nav>
 
       {/* Main content */}
-      <main className="h-[calc(100vh-61px)]">
+      <main className="min-h-[calc(100vh-61px)]">
         <Rooms
           rooms={filteredRooms}
           onDelete={(slug) => {

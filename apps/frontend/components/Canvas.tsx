@@ -15,6 +15,16 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shape, setShape] = useState<Shape>("rectangle");
   const [color, setColor] = useState<string>("#ffffff");
+  const [scale, setScale] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(`panOffset_${slug}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.scale || 1;
+      }
+    } catch (e) {console.log(e)}
+    return 1;
+  });
   const { size } = useWindowDimensions();
   const gameRef = useRef<Game | null>(null);
 
@@ -25,6 +35,12 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   useEffect(() => {
     gameRef.current?.setStrokeColor(color);
   }, [color]);
+
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.setScale(scale);
+    }
+  }, [scale]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -76,6 +92,8 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
         onToolChange={setShape}
         color={color}
         onColorChange={setColor}
+        scale={scale}
+        onScaleChange={setScale}
       />
 
       {/* Top-right action buttons */}
