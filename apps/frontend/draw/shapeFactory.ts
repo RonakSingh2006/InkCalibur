@@ -8,7 +8,8 @@ export function createShape(
   posY: number,
   points: { x: number; y: number }[],
   tempId: number,
-  strokeColor?: string
+  strokeColor?: string,
+  strokeWidth?: number
 ): Shape | null {
   if (tool === "rectangle") {
     const w = posX - startX;
@@ -21,6 +22,7 @@ export function createShape(
       posY: startY,
       data: JSON.stringify({ width: w, height: h }),
       strokeColor,
+      strokeWidth,
     };
   }
 
@@ -40,6 +42,7 @@ export function createShape(
       posY: centerY,
       data: JSON.stringify({ angle, radiusX, radiusY }),
       strokeColor,
+      strokeWidth,
     };
   }
 
@@ -51,6 +54,7 @@ export function createShape(
       posY: startY,
       data: JSON.stringify({ endPointX: posX, endPointY: posY }),
       strokeColor,
+      strokeWidth,
     };
   }
 
@@ -69,6 +73,7 @@ export function createShape(
       posY: centerY,
       data: JSON.stringify({ radiusX, radiusY }),
       strokeColor,
+      strokeWidth,
     };
   }
 
@@ -80,6 +85,7 @@ export function createShape(
       posY: startY,
       data: JSON.stringify({ points }),
       strokeColor,
+      strokeWidth,
     };
   }
 

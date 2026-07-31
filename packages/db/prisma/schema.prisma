@@ -35,6 +35,7 @@ model Shape{
   posY      Int 
   data      String
   strokeColor String?
+  strokeWidth Int?
 
   roomId    Int
   userId    String

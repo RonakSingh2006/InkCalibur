@@ -14,6 +14,7 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shape, setShape] = useState<Shape>("rectangle");
   const [color, setColor] = useState<string>("#ffffff");
+  const [strokeWidth, setStrokeWidth] = useState<number>(2);
   const [scale, setScale] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(`panOffset_${slug}`);
@@ -34,6 +35,10 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
   useEffect(() => {
     gameRef.current?.setStrokeColor(color);
   }, [color]);
+
+  useEffect(() => {
+    gameRef.current?.setStrokeWidth(strokeWidth);
+  }, [strokeWidth]);
 
   useEffect(() => {
     if (gameRef.current) {
@@ -103,6 +108,8 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
         onToolChange={setShape}
         color={color}
         onColorChange={setColor}
+        strokeWidth={strokeWidth}
+        onStrokeWidthChange={setStrokeWidth}
         scale={scale}
         onScaleChange={setScale}
       />

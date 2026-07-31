@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Square from "@/icons/Sqaure";
 import Circle from "@/icons/Circle";
 import Line from "@/icons/Line";
@@ -16,6 +16,8 @@ interface ToolbarProps {
   onToolChange: (tool: Shape) => void;
   color: string;
   onColorChange: (color: string) => void;
+  strokeWidth: number;
+  onStrokeWidthChange: (width: number) => void;
   scale: number;
   onScaleChange: (scale: number) => void;
 }
@@ -88,6 +90,72 @@ function ColorPicker({ color, onColorChange }: { color: string; onColorChange: (
   );
 }
 
+const STROKE_WIDTHS = [1, 2, 3, 5, 8, 12];
+
+function StrokeWidthPicker({ strokeWidth, onStrokeWidthChange }: { strokeWidth: number; onStrokeWidthChange: (width: number) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative group" ref={dropdownRef}>
+      <button
+        className="p-2 rounded-lg transition-all duration-200 cursor-pointer hover:bg-zinc-800 relative"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center justify-center w-5.5 h-5.5">
+          <div
+            className="rounded-full bg-zinc-400"
+            style={{
+              width: Math.min(strokeWidth, 12),
+              height: Math.min(strokeWidth, 12),
+            }}
+          />
+        </div>
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          Stroke Width
+        </div>
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-2 rounded-lg bg-zinc-900 border border-zinc-800 shadow-2xl flex flex-col items-center gap-1.5 z-50">
+          {STROKE_WIDTHS.map((w) => (
+            <button
+              key={w}
+              className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer hover:bg-zinc-800 ${
+                strokeWidth === w ? "bg-indigo-500/20 ring-1 ring-indigo-500" : ""
+              }`}
+              onClick={() => {
+                onStrokeWidthChange(w);
+                setIsOpen(false);
+              }}
+            >
+              <div
+                className="rounded-full bg-zinc-400"
+                style={{
+                  width: Math.min(w, 10),
+                  height: Math.min(w, 10),
+                }}
+              />
+            </button>
+          ))}
+          <div className="mt-1 px-1.5 py-0.5 text-xs text-zinc-400 font-mono min-w-8 text-center border-t border-zinc-700 pt-1.5">
+            {strokeWidth}px
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ZoomControls({ scale, onScaleChange }: { scale: number; onScaleChange: (scale: number) => void }) {
   const zoomPercent = Math.round(scale * 100);
 
@@ -131,7 +199,7 @@ function ZoomControls({ scale, onScaleChange }: { scale: number; onScaleChange: 
   );
 }
 
-export default function Toolbar({ activeTool, onToolChange, color, onColorChange, scale, onScaleChange }: ToolbarProps) {
+export default function Toolbar({ activeTool, onToolChange, color, onColorChange, strokeWidth, onStrokeWidthChange, scale, onScaleChange }: ToolbarProps) {
   return (
     <div className="fixed top-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 shadow-2xl">
       <div className="flex items-center gap-1">
@@ -141,6 +209,8 @@ export default function Toolbar({ activeTool, onToolChange, color, onColorChange
       </div>
       <div className="w-px h-6 bg-zinc-700 mx-1" />
       <ColorPicker color={color} onColorChange={onColorChange} />
+      <div className="w-px h-6 bg-zinc-700 mx-1" />
+      <StrokeWidthPicker strokeWidth={strokeWidth} onStrokeWidthChange={onStrokeWidthChange} />
       <div className="w-px h-6 bg-zinc-700 mx-1" />
       <ZoomControls scale={scale} onScaleChange={onScaleChange} />
     </div>

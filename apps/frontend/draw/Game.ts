@@ -30,6 +30,7 @@ export class Game {
   private panStartX: number;
   private panStartY: number;
   private strokeColor: string;
+  private strokeWidth: number;
   private scale: number;
 
   constructor(
@@ -62,6 +63,7 @@ export class Game {
     this.panStartX = 0;
     this.panStartY = 0;
     this.strokeColor = "white";
+    this.strokeWidth = 2;
     this.scale = 1;
     this.loadPanOffset();
 
@@ -119,6 +121,7 @@ export class Game {
     this.ctx.scale(this.scale, this.scale);
     this.ctx.translate(-cx, -cy);
     this.ctx.strokeStyle = this.strokeColor;
+    this.ctx.lineWidth = this.strokeWidth;
     this.shapes.forEach((s) => drawShape(this.ctx, s));
 
     if (this.highlightShape) {
@@ -195,6 +198,7 @@ export class Game {
       this.startY = mousePos.y;
       this.points = [{ x: this.startX, y: this.startY }];
       this.ctx.strokeStyle = this.strokeColor;
+      this.ctx.lineWidth = this.strokeWidth;
     }
   };
 
@@ -260,6 +264,7 @@ export class Game {
       const sPosX = toScreenX(posX);
       const sPosY = toScreenY(posY);
 
+      this.ctx.lineWidth = this.strokeWidth;
       if (this.currTool === "rectangle") {
         this.ctx.strokeRect(sStartX, sStartY, sPosX - sStartX, sPosY - sStartY);
       } else if (this.currTool === "line") {
@@ -319,7 +324,7 @@ export class Game {
       const mousePos = this.getMousePos(_event);
       const tempId = this.nextTempId--;
 
-      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId, this.strokeColor);
+      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId, this.strokeColor, this.strokeWidth);
       this.points = [];
 
       if (s) {
@@ -357,6 +362,11 @@ export class Game {
   setStrokeColor(color: string) {
     this.strokeColor = color;
     this.ctx.strokeStyle = color;
+  }
+
+  setStrokeWidth(width: number) {
+    this.strokeWidth = width;
+    this.ctx.lineWidth = width;
   }
 
   setScale(scale: number) {

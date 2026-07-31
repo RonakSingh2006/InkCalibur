@@ -3,6 +3,7 @@ import { drawPencil } from "./draw";
 
 export function drawShape(ctx: CanvasRenderingContext2D, s: Shape) {
   ctx.strokeStyle = s.strokeColor || "white";
+  ctx.lineWidth = s.strokeWidth || 2;
   if (s.type === "rectangle") {
     const data = JSON.parse(s.data);
     ctx.strokeRect(s.posX, s.posY, data.width, data.height);
