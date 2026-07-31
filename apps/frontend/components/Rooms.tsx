@@ -1,5 +1,5 @@
 import RoomCard from "@/components/RoomCard";
-import Image from "next/image";
+import EmptyDocs from "@/icons/EmptyDocs";
 
 interface Room {
   id: string;
@@ -21,13 +21,9 @@ export default function Rooms({
     <div className="flex-1 overflow-y-auto px-10 py-6">
       {rooms.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-          <Image
-            src="/empty-docs.svg"
-            alt="No rooms"
-            width={64}
-            height={64}
-            className="mb-4 opacity-50"
-          />
+          <div className="mb-4 opacity-50">
+            <EmptyDocs size={64} color="#71717a" />
+          </div>
           <p className="text-lg font-medium">
             {isSearching ? "No matching rooms" : "No rooms yet"}
           </p>
