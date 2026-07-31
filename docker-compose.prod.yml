@@ -8,6 +8,7 @@ services:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      RESEND_API_KEY: ${RESEND_API_KEY}
 
   ws-server:
     image: ronaksingh2006/inkcalibur-ws-server:latest

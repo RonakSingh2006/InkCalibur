@@ -27,6 +27,8 @@ RUN pnpm --filter @repo/common build
 
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
+ARG RESEND_API_KEY
+ENV RESEND_API_KEY=$RESEND_API_KEY
 
 
 RUN pnpm --filter http-server build
