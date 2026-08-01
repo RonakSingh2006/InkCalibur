@@ -1,5 +1,11 @@
 import { Shape, tool } from "./types";
-import { rectangleCheck, circleCheck, ellipseCheck, lineCheck, pencilCheck } from "./shapeChecks";
+import {
+  rectangleCheck,
+  circleCheck,
+  ellipseCheck,
+  lineCheck,
+  pencilCheck,
+} from "./shapeChecks";
 import { drawHighlight, drawEraserHighlight } from "./highlight";
 import { drawShape } from "./shapeRenderer";
 import { createShape } from "./shapeFactory";
@@ -11,7 +17,7 @@ export class Game {
   private ctx: CanvasRenderingContext2D;
   private socket: WebSocket;
   private shapes: Shape[];
-  private slug: string;
+  private inviteCode: string;
   private roomId: number;
   private startX: number;
   private startY: number;
@@ -24,9 +30,9 @@ export class Game {
   private offsetY: number;
   private highlightShape: Shape | null;
   private nextTempId: number;
-  private panOffsetX : number;
-  private panOffsetY : number;
-  private panning : boolean;
+  private panOffsetX: number;
+  private panOffsetY: number;
+  private panning: boolean;
   private panStartX: number;
   private panStartY: number;
   private strokeColor: string;
@@ -35,13 +41,13 @@ export class Game {
 
   constructor(
     canvas: HTMLCanvasElement,
-    slug: string,
+    inviteCode: string,
     socket: WebSocket,
-    roomId: number
+    roomId: number,
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
-    this.slug = slug;
+    this.inviteCode = inviteCode;
     this.socket = socket;
     this.roomId = roomId;
     this.currTool = "rectangle";
@@ -73,7 +79,7 @@ export class Game {
   }
 
   async init() {
-    this.shapes = await getAllShapes(this.slug);
+    this.shapes = await getAllShapes(this.inviteCode);
     this.render();
   }
 
@@ -147,16 +153,14 @@ export class Game {
   }
 
   private deleteShape(shape: Shape) {
-    
     this.shapes = this.shapes.filter((s) => s.id !== shape.id);
 
-    
     this.socket.send(
       JSON.stringify({
         type: "delete_shape",
         roomId: this.roomId,
         shapeId: shape.id,
-      })
+      }),
     );
   }
 
@@ -233,7 +237,7 @@ export class Game {
         this.render();
       }
     } else if (this.currTool === "hand") {
-      if(this.panning){
+      if (this.panning) {
         const rect = this.canvas.getBoundingClientRect();
         const screenX = event.clientX - rect.left;
         const screenY = event.clientY - rect.top;
@@ -257,8 +261,10 @@ export class Game {
 
       const cx = this.canvas.width / 2;
       const cy = this.canvas.height / 2;
-      const toScreenX = (wx: number) => (wx - cx) * this.scale + cx + this.panOffsetX;
-      const toScreenY = (wy: number) => (wy - cy) * this.scale + cy + this.panOffsetY;
+      const toScreenX = (wx: number) =>
+        (wx - cx) * this.scale + cx + this.panOffsetX;
+      const toScreenY = (wy: number) =>
+        (wy - cy) * this.scale + cy + this.panOffsetY;
       const sStartX = toScreenX(this.startX);
       const sStartY = toScreenY(this.startY);
       const sPosX = toScreenX(posX);
@@ -278,7 +284,15 @@ export class Game {
         const centerX = this.startX + dx / 2;
         const centerY = this.startY + dy / 2;
         this.ctx.beginPath();
-        this.ctx.ellipse(toScreenX(centerX), toScreenY(centerY), Math.abs(dx) / 2 * this.scale, Math.abs(dy) / 2 * this.scale, 0, 0, 2 * Math.PI);
+        this.ctx.ellipse(
+          toScreenX(centerX),
+          toScreenY(centerY),
+          (Math.abs(dx) / 2) * this.scale,
+          (Math.abs(dy) / 2) * this.scale,
+          0,
+          0,
+          2 * Math.PI,
+        );
         this.ctx.stroke();
       } else if (this.currTool === "ellipse") {
         const dx = posX - this.startX;
@@ -289,7 +303,15 @@ export class Game {
         const centerX = this.startX + dx / 2;
         const centerY = this.startY + dy / 2;
         this.ctx.beginPath();
-        this.ctx.ellipse(toScreenX(centerX), toScreenY(centerY), rx * this.scale, ry * this.scale, angle, 0, 2 * Math.PI);
+        this.ctx.ellipse(
+          toScreenX(centerX),
+          toScreenY(centerY),
+          rx * this.scale,
+          ry * this.scale,
+          angle,
+          0,
+          2 * Math.PI,
+        );
         this.ctx.stroke();
       } else if (this.currTool === "pencil") {
         this.ctx.beginPath();
@@ -311,7 +333,7 @@ export class Game {
             type: "update_shape",
             roomId: this.roomId,
             shape: this.selectedShape,
-          })
+          }),
         );
         this.selectedShape = null;
         this.setCursor("default");
@@ -324,12 +346,22 @@ export class Game {
       const mousePos = this.getMousePos(_event);
       const tempId = this.nextTempId--;
 
-      const s = createShape(this.currTool, this.startX, this.startY, mousePos.x, mousePos.y, this.points, tempId, this.strokeColor, this.strokeWidth);
+      const s = createShape(
+        this.currTool,
+        this.startX,
+        this.startY,
+        mousePos.x,
+        mousePos.y,
+        this.points,
+        tempId,
+        this.strokeColor,
+        this.strokeWidth,
+      );
       this.points = [];
 
       if (s) {
         this.socket.send(
-          JSON.stringify({ type: "add_shape", roomId: this.roomId, shape: s })
+          JSON.stringify({ type: "add_shape", roomId: this.roomId, shape: s }),
         );
       }
     }
@@ -384,12 +416,14 @@ export class Game {
     this.highlightShape = null;
     this.selectedShape = null;
     this.render();
-    this.socket.send(JSON.stringify({ type: "clear_canvas", roomId: this.roomId }));
+    this.socket.send(
+      JSON.stringify({ type: "clear_canvas", roomId: this.roomId }),
+    );
   }
 
   private loadPanOffset() {
     try {
-      const saved = localStorage.getItem(`panOffset_${this.slug}`);
+      const saved = localStorage.getItem(`panOffset_${this.inviteCode}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         this.panOffsetX = parsed.x || 0;
@@ -397,15 +431,19 @@ export class Game {
         this.scale = parsed.scale || 1;
       }
     } catch (e) {
-        console.log(e);
+      console.log(e);
     }
   }
 
   private savePanOffset() {
     try {
       localStorage.setItem(
-        `panOffset_${this.slug}`,
-        JSON.stringify({ x: this.panOffsetX, y: this.panOffsetY, scale: this.scale })
+        `panOffset_${this.inviteCode}`,
+        JSON.stringify({
+          x: this.panOffsetX,
+          y: this.panOffsetY,
+          scale: this.scale,
+        }),
       );
     } catch (e) {
       console.log(e);

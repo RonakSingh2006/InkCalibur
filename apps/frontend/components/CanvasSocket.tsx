@@ -2,7 +2,7 @@
 import { useSocket } from "@/hooks/useSocket";
 import Canvas from "./Canvas";
 
-export default function CanvasSocket({slug , roomId, inviteCode} : {slug : string , roomId : number, inviteCode?: string}){
+export default function CanvasSocket({inviteCode , roomId} : {inviteCode : string , roomId : number}){
   const {loading,socket} = useSocket();
 
   if(loading || !socket){
@@ -10,5 +10,5 @@ export default function CanvasSocket({slug , roomId, inviteCode} : {slug : strin
       Connecting.....
     </div>
   }
-  return <Canvas slug={slug} socket = {socket} roomId = {roomId} inviteCode={inviteCode}/>
+  return <Canvas inviteCode={inviteCode} socket = {socket} roomId = {roomId}/>
 }

@@ -218,13 +218,13 @@ router.post("/join", async (req: Request, res: Response) => {
   }
 });
 
-// Get roomId by slug
-router.get("/roomId/:slug", async (req, res) => {
-  const slug = req.params.slug;
+// Get roomId by invite code
+router.get("/roomId/:inviteCode", async (req, res) => {
+  const inviteCode = req.params.inviteCode;
 
   try {
     const room = await prisma.room.findFirst({
-      where: { slug },
+      where: { inviteCode },
     });
 
     if (!room) {

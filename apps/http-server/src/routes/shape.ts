@@ -4,12 +4,12 @@ import { prisma } from "@repo/db/client";
 const router:Router = Router();
 
 // Get Shapes
-router.get("/shapes/:slug", async (req, res) => {
-  const slug = req.params.slug;
+router.get("/shapes/:inviteCode", async (req, res) => {
+  const inviteCode = req.params.inviteCode;
 
   try {
     const room = await prisma.room.findFirst({
-      where: { slug },
+      where: { inviteCode },
     });
 
     if (!room) {

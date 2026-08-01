@@ -100,7 +100,7 @@ export default function CreateRoom({ closeRoom }: { closeRoom: () => void }) {
                 headers: { Authorization: localStorage.getItem("token") },
               });
               const inviteCode = response.data.inviteCode;
-              router.push(`/canvas/${roomData.name}?invite=${inviteCode}`);
+              router.push(`/canvas/${inviteCode}`);
             } catch (error) {
               if (axios.isAxiosError(error)) {
                 setErrors({ name: error.response?.data.message });

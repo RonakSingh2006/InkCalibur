@@ -2,9 +2,9 @@ import { BACKEND_URL } from "@repo/common/config";
 import axios from "axios";
 import { Shape } from "./types";
 
-export async function getAllShapes(slug: string): Promise<Shape[]> {
+export async function getAllShapes(inviteCode: string): Promise<Shape[]> {
   try {
-    const response = await axios.get(`${BACKEND_URL}/shapes/${slug}`);
+    const response = await axios.get(`${BACKEND_URL}/shapes/${inviteCode}`);
     return response.data.shapes;
   } catch (err) {
     if (axios.isAxiosError(err)) {

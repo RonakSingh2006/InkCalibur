@@ -45,9 +45,8 @@ export default function JoinByInvite() {
     const password = passwordRef.current?.value;
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/join`, { inviteCode, password });
-      const slug = response.data.slug;
-      router.push(`/canvas/${slug}`);
+      await axios.post(`${BACKEND_URL}/join`, { inviteCode, password });
+      router.push(`/canvas/${inviteCode}`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data.message;

@@ -34,7 +34,7 @@ export default function RoomCard({
     if (visibility === "PRIVATE") {
       router.push(`/join/${inviteCode}`);
     } else {
-      router.push(`canvas/${name}`);
+      router.push(`canvas/${inviteCode}`);
     }
   };
 

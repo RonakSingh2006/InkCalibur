@@ -9,7 +9,7 @@ import ActionBar from "./ActionBar";
 
 type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select" | "eraser";
 
-export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: string; socket: WebSocket; roomId: number; inviteCode?: string }) {
+export default function Canvas({ inviteCode, socket, roomId }: { inviteCode: string; socket: WebSocket; roomId: number }) {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shape, setShape] = useState<Shape>("rectangle");
@@ -17,7 +17,7 @@ export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: str
   const [strokeWidth, setStrokeWidth] = useState<number>(2);
   const [scale, setScale] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem(`panOffset_${slug}`);
+      const saved = localStorage.getItem(`panOffset_${inviteCode}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         return parsed.scale || 1;
@@ -60,7 +60,7 @@ export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: str
       })
     );
 
-    gameRef.current = new Game(canvas, slug, socket, roomId);
+    gameRef.current = new Game(canvas, inviteCode, socket, roomId);
     gameRef.current?.setTool(shape);
 
     return () => {
@@ -68,7 +68,7 @@ export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: str
       gameRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, socket, roomId, size]);
+  }, [inviteCode, socket, roomId, size]);
 
   const handleLeaveRoom = useCallback(() => {
     socket.send(
@@ -89,15 +89,14 @@ export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: str
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `canvas-${slug}.png`;
+    link.download = `canvas-${inviteCode}.png`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [slug]);
+  }, [inviteCode]);
 
   const handleShare = useCallback(() => {
-    if (!inviteCode) return;
     const inviteLink = `${window.location.origin}/join/${inviteCode}`;
     navigator.clipboard.writeText(inviteLink);
     alert("Invite link copied to clipboard!");
