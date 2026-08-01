@@ -69,6 +69,7 @@ export default function SignIn() {
                 const response = await axios.post(`${BACKEND_URL}/signin`, authData);
                 const token = response.data.token;
                 localStorage.setItem("token", token);
+                document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
                 router.push("/dashboard");
               } catch (err) {
                 if (axios.isAxiosError(err)) {

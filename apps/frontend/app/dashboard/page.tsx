@@ -122,6 +122,7 @@ export default function DashBoard() {
               size="sm"
               onClick={() => {
                 localStorage.removeItem("token");
+                document.cookie = "token=; path=/; max-age=0; SameSite=Lax";
                 router.push("/");
               }}
             />
