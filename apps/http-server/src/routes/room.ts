@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
 import { Auth } from "../middlewares/auth";
-import { RoomSchema } from "@repo/common/schema";
+import { RoomSchema, JoinRoomSchema } from "@repo/common/schema";
 import { prisma } from "@repo/db/client";
 import { isMonthQuery, monthStart, monthEnd } from "../utils/search";
 
@@ -21,12 +23,13 @@ router.post("/room", Auth, async (req: Request, res: Response) => {
   if (!userId) {
     return res.status(403).send({ message: "Unauthorized" });
   }
-  const { name } = result.data;
+  const { name, visibility, password } = result.data;
 
   try {
     const valid = await prisma.room.findFirst({
       where: {
         slug: name,
+        adminId: userId,
       },
     });
 
@@ -34,16 +37,26 @@ router.post("/room", Auth, async (req: Request, res: Response) => {
       return res.status(409).send({ message: "Room Already exists" });
     }
 
+    const inviteCode = nanoid(12);
+
+    const hashedPassword = visibility === "PRIVATE" && password
+      ? await bcrypt.hash(password, 10)
+      : null;
+
     const room = await prisma.room.create({
       data: {
         slug: name,
         adminId: userId,
+        visibility,
+        password: hashedPassword,
+        inviteCode,
       },
     });
 
     res.send({
       message: "Room Created",
       roomId: room.id,
+      inviteCode: room.inviteCode,
     });
   } catch (error) {
     res.status(403).send({
@@ -133,6 +146,78 @@ router.get("/rooms/search", Auth, async (req: Request, res: Response) => {
   }
 });
 
+// Get room info by invite code (for join page)
+router.get("/room/invite/:inviteCode", async (req: Request, res: Response) => {
+  const inviteCode = req.params.inviteCode;
+
+  try {
+    const room = await prisma.room.findFirst({
+      where: { inviteCode },
+    });
+
+    if (!room) {
+      return res.status(404).send({ message: "Room not found" });
+    }
+
+    res.send({
+      slug: room.slug,
+      visibility: room.visibility,
+    });
+  } catch (error) {
+    res.status(403).send({
+      message: "DB failure",
+      error,
+    });
+  }
+});
+
+// Join room by invite code
+router.post("/join", async (req: Request, res: Response) => {
+  const result = JoinRoomSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).send({
+      message: "Incorrect Input",
+      error: result.error,
+    });
+  }
+
+  const { inviteCode, password } = result.data;
+
+  try {
+    const room = await prisma.room.findFirst({
+      where: { inviteCode },
+    });
+
+    if (!room) {
+      return res.status(404).send({ message: "Room not found" });
+    }
+
+    // If room is private
+    if (room.visibility === "PRIVATE") {
+      if (!password) {
+        return res.status(403).send({ message: "Password required" });
+      }
+
+      const valid = await bcrypt.compare(password, room.password || "");
+      if (!valid) {
+        return res.status(403).send({ message: "Invalid room password" });
+      }
+    }
+
+    res.send({
+      message: "Room joined",
+      roomId: room.id,
+      slug: room.slug,
+    });
+  } catch (error) {
+    res.status(403).send({
+      message: "DB failure",
+      error,
+    });
+  }
+});
+
 // Get roomId by slug
 router.get("/roomId/:slug", async (req, res) => {
   const slug = req.params.slug;
@@ -148,6 +233,7 @@ router.get("/roomId/:slug", async (req, res) => {
 
     res.send({
       roomId: room.id,
+      inviteCode: room.inviteCode,
     });
   } catch (error) {
     res.status(403).send({
@@ -169,11 +255,17 @@ router.delete("/room/:slug", Auth, async (req: Request, res: Response) => {
   const slug = req.params.slug;
   const userId = req.userId;
 
+  if (!slug || !userId) {
+    return res.status(403).send({ message: "Unauthorized" });
+  }
+
   try {
     await prisma.room.delete({
       where: {
-        slug,
-        adminId: userId,
+        slug_adminId: {
+          slug,
+          adminId: userId,
+        },
       },
     });
 
