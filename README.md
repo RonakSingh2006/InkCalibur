@@ -44,8 +44,20 @@ Built as a **scalable monorepo** using **Turborepo** and **pnpm**, combining a *
     <td>Create and join separate drawing rooms with unique slugs</td>
   </tr>
   <tr>
+    <td>🌍 <b>Public & Private Rooms</b></td>
+    <td>Create public rooms for open collaboration or password-protected private rooms</td>
+  </tr>
+  <tr>
+    <td>🔗 <b>Invite Links</b></td>
+    <td>Share unique invite links (e.g., <code>/join/kF82dQmPa91Z</code>) for instant room access</td>
+  </tr>
+  <tr>
     <td>🔐 <b>Email OTP Authentication</b></td>
     <td>Secure signup with email verification via 6-digit OTP (5 min expiry) and email/username signin</td>
+  </tr>
+  <tr>
+    <td>🛡️ <b>Route Protection</b></td>
+    <td>Unauthenticated users are redirected to the home page via Next.js middleware</td>
   </tr>
   <tr>
     <td>🎨 <b>Versatile Tools</b></td>
@@ -299,9 +311,11 @@ pnpm turbo run prisma:migrate
 | GET | `/me` | Get current user's details |
 | GET | `/rooms` | Get all rooms |
 | GET | `/rooms/search?q=` | Search rooms by name or date |
-| POST | `/room` | Create a new room |
+| POST | `/room` | Create a new room (with visibility & password) |
+| POST | `/join` | Join a room by invite code (with password for private rooms) |
+| GET | `/room/invite/:inviteCode` | Get room info (slug & visibility) by invite code |
 | DELETE | `/room/:slug` | Delete a room |
-| GET | `/roomId/:slug` | Get room ID by slug |
+| GET | `/roomId/:slug` | Get room ID & invite code by slug |
 | GET | `/shapes/:slug` | Get shapes for a room |
 
 ---

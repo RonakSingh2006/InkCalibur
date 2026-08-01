@@ -10,6 +10,7 @@ import Eraser from "@/icons/Eraser";
 import Hand from "@/icons/Hand";
 import Select from "@/icons/Select";
 import Download from "@/icons/Download";
+import Share from "@/icons/Share";
 
 export default function Home() {
   const router = useRouter();
@@ -109,6 +110,21 @@ export default function Home() {
               title="Export & Manage"
               desc="Download your work as a PNG image or clear the canvas to start fresh whenever you need."
               icon={(s, c) => <Download size={s} color={c} />}
+            />
+            <FeatureCard
+              title="Public & Private Rooms"
+              desc="Create public rooms for open collaboration or password-protected private rooms for your team only."
+              icon={(s, c) => <Share size={s} color={c} />}
+            />
+            <FeatureCard
+              title="Invite Links"
+              desc="Share a unique invite link so anyone can join your room instantly — no manual room search needed."
+              icon={(s, c) => <Share size={s} color={c} />}
+            />
+            <FeatureCard
+              title="Email OTP Auth"
+              desc="Secure signup with email verification via 6-digit OTP codes that expire in 5 minutes."
+              icon={(s, c) => <Select size={s} color={c} />}
             />
           </div>
         </div>
