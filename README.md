@@ -16,6 +16,7 @@
 
   <p>
     <a href="#features">Features</a> •
+    <a href="#future-features">Future Features</a> •
     <a href="#architecture">Architecture</a> •
     <a href="#tech-stack">Tech Stack</a> •
     <a href="#getting-started">Getting Started</a> •
@@ -71,6 +72,18 @@ Built as a **scalable monorepo** using **Turborepo** and **pnpm**, combining a *
     <td>Modular architecture with shared packages via Turborepo</td>
   </tr>
 </table>
+
+---
+
+<h2 id="future-features">🔮 Future Features</h2>
+
+| Feature | Description |
+|---------|-------------|
+| ↩️ <b>Undo / Redo</b> | Step backward and forward through your drawing history for easy corrections |
+| 📐 <b>Shape Resize</b> | Resize and scale shapes after drawing them with drag handles |
+| ⌨️ <b>Text Tool</b> | Add text annotations, labels, and notes directly onto the canvas |
+| 🔑 <b>OAuth Authentication</b> | Sign in with Google, GitHub, and other third-party providers |
+| 🤖 <b>AI-Based Drawing</b> | AI-assisted drawing suggestions, auto-complete shapes, and intelligent diagram generation |
 
 ---
 
