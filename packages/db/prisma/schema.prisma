@@ -19,14 +19,28 @@ model User{
   shapes Shape[]
 }
 
-model Room{
-  id        Int        @id @default(autoincrement())
-  slug      String     @unique
-  createdAt DateTime   @default(now())
-  adminId   String
+enum RoomVisibility {
+  PUBLIC
+  PRIVATE
+}
 
-  admin     User      @relation(fields: [adminId] , references: [id] , onDelete: Cascade)
-  shapes    Shape[]
+model Room {
+  id          Int            @id @default(autoincrement())
+
+  slug        String
+  inviteCode  String         @unique
+
+  visibility  RoomVisibility @default(PUBLIC)
+  password    String?
+
+  createdAt   DateTime       @default(now())
+
+  adminId     String
+  admin       User           @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  shapes      Shape[]
+
+  @@unique([slug, adminId])
 }
 
 model Shape{

@@ -32,7 +32,22 @@ export const AuthSchema = z.object({
 })
 
 export const RoomSchema = z.object({
-  name : z.string().min(3 , "Minimum Length of Room name is 3").max(20 , "Maximum Length of Room name is 20")
+  name: z.string().min(3, "Minimum Length of Room name is 3").max(20, "Maximum Length of Room name is 20"),
+  visibility: z.enum(["PUBLIC", "PRIVATE"]).default("PUBLIC"),
+  password: z.string().optional(),
+}).refine((data) => {
+  if (data.visibility === "PRIVATE" && (!data.password || data.password.length < 4)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Password is required for private rooms (min 4 characters)",
+  path: ["password"],
+})
+
+export const JoinRoomSchema = z.object({
+  inviteCode: z.string().min(1, "Invite code is required"),
+  password: z.string().optional(),
 })
 
 export type User = z.input<typeof UserSchema>
