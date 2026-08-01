@@ -9,7 +9,7 @@ import ActionBar from "./ActionBar";
 
 type Shape = "rectangle" | "circle" | "line" | "ellipse" | "pencil" | "hand" | "select" | "eraser";
 
-export default function Canvas({ slug, socket, roomId }: { slug: string; socket: WebSocket; roomId: number }) {
+export default function Canvas({ slug, socket, roomId, inviteCode }: { slug: string; socket: WebSocket; roomId: number; inviteCode?: string }) {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shape, setShape] = useState<Shape>("rectangle");
@@ -96,6 +96,13 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
     document.body.removeChild(link);
   }, [slug]);
 
+  const handleShare = useCallback(() => {
+    if (!inviteCode) return;
+    const inviteLink = `${window.location.origin}/join/${inviteCode}`;
+    navigator.clipboard.writeText(inviteLink);
+    alert("Invite link copied to clipboard!");
+  }, [inviteCode]);
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-zinc-950">
       <canvas
@@ -118,6 +125,7 @@ export default function Canvas({ slug, socket, roomId }: { slug: string; socket:
         onDownload={handleDownload}
         onClearCanvas={handleClearCanvas}
         onLeaveRoom={handleLeaveRoom}
+        onShare={handleShare}
       />
     </div>
   );

@@ -6,14 +6,16 @@ export default async function RoomCanvas({params} : {params : Promise<{slug : st
 
   const {slug} = await params;
   let id = 0;
+  let inviteCode = "";
   try{
     const response = await axios.get(`${getBackendUrl()}/roomId/${slug}`)
     id = response.data.roomId;
+    inviteCode = response.data.inviteCode || "";
   }
   catch(err){
     console.log(err);
   }
 
-  return <CanvasSocket slug={slug} roomId = {id}/>
+  return <CanvasSocket slug={slug} roomId = {id} inviteCode={inviteCode}/>
 } 
 

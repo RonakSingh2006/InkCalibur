@@ -15,6 +15,8 @@ interface Room {
   slug: string;
   createdAt: string;
   adminId: string;
+  visibility: "PUBLIC" | "PRIVATE";
+  inviteCode: string;
 }
 
 async function getRooms() {

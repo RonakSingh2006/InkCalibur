@@ -18,16 +18,32 @@ function getDate(str: string) {
 export default function RoomCard({
   name,
   createdAt,
+  visibility,
+  inviteCode,
   onDelete,
 }: {
   name: string;
   createdAt: string;
+  visibility: "PUBLIC" | "PRIVATE";
+  inviteCode: string;
   onDelete: (slug: string) => void;
 }) {
   const router = useRouter();
 
+  const handleJoin = () => {
+    if (visibility === "PRIVATE") {
+      router.push(`/join/${inviteCode}`);
+    } else {
+      router.push(`canvas/${name}`);
+    }
+  };
+
   return (
-    <div className="group relative rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 hover:border-indigo-500/50 transition-all duration-300 w-72 h-48 flex flex-col justify-between p-5 backdrop-blur-sm">
+    <div className={`group relative rounded-xl border bg-zinc-900/50 hover:bg-zinc-900 transition-all duration-300 w-72 h-48 flex flex-col justify-between p-5 backdrop-blur-sm ${
+      visibility === "PRIVATE"
+        ? "border-amber-500/30 hover:border-amber-500/60"
+        : "border-zinc-800 hover:border-indigo-500/50"
+    }`}>
       
       {/* Delete button */}
       <button
@@ -49,8 +65,14 @@ export default function RoomCard({
 
       {/* Room icon */}
       <div className="flex items-center gap-3 mt-2">
-        <div className="size-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-          <span className="text-indigo-400 text-lg font-bold">
+        <div className={`size-10 rounded-lg border flex items-center justify-center ${
+          visibility === "PRIVATE"
+            ? "bg-amber-500/10 border-amber-500/20"
+            : "bg-indigo-500/10 border-indigo-500/20"
+        }`}>
+          <span className={`text-lg font-bold ${
+            visibility === "PRIVATE" ? "text-amber-400" : "text-indigo-400"
+          }`}>
             {name.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -64,12 +86,23 @@ export default function RoomCard({
         </div>
       </div>
 
+      {/* Visibility badge */}
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+          visibility === "PRIVATE"
+            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+            : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+        }`}>
+          {visibility === "PRIVATE" ? "🔒 Private" : "🌍 Public"}
+        </span>
+      </div>
+
       {/* Join button */}
       <Button
         variant="secondary"
         size="medium"
-        onClick={() => router.push(`canvas/${name}`)}
-        text="Join Room"
+        onClick={handleJoin}
+        text={visibility === "PRIVATE" ? "Enter Room" : "Join Room"}
       />
     </div>
   );

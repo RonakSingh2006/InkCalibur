@@ -6,6 +6,8 @@ interface Room {
   slug: string;
   createdAt: string;
   adminId: string;
+  visibility: "PUBLIC" | "PRIVATE";
+  inviteCode: string;
 }
 
 export default function Rooms({
@@ -40,6 +42,8 @@ export default function Rooms({
               key={r.id}
               name={r.slug}
               createdAt={r.createdAt}
+              visibility={r.visibility}
+              inviteCode={r.inviteCode}
               onDelete={onDelete}
             />
           ))}

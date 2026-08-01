@@ -2,9 +2,6 @@
 
 import InputWrapper from "@/components/InputWrapper";
 import Input from "@/components/Input";
-import { RoomSchema } from "@repo/common/schema";
-import { BACKEND_URL } from "@repo/common/config";
-import axios from 'axios';
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import Button from "./Button";
@@ -12,8 +9,14 @@ import Cross from "@/icons/Cross";
 
 export default function JoinRoom({ closeRoom }: { closeRoom: () => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const nameRef = useRef<HTMLInputElement>(null);
+  const inviteRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  const extractInviteCode = (input: string): string => {
+    const match = input.match(/\/join\/([A-Za-z0-9_-]+)/);
+    if (match) return match[1];
+    return input.trim();
+  };
 
   return (
     <div className="relative w-96 rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-2xl">
@@ -33,8 +36,12 @@ export default function JoinRoom({ closeRoom }: { closeRoom: () => void }) {
 
       {/* Input */}
       <div className="flex flex-col items-center gap-6">
-        <InputWrapper error={errors.name}>
-          <Input placeholder="Room Name" type="text" ref={nameRef} />
+        <InputWrapper error={errors.inviteCode}>
+          <Input
+            placeholder="Paste invite link or code"
+            type="text"
+            ref={inviteRef}
+          />
         </InputWrapper>
 
         <Button
@@ -42,27 +49,17 @@ export default function JoinRoom({ closeRoom }: { closeRoom: () => void }) {
           size="medium"
           text="Join Room"
           auth={true}
-          onClick={async () => {
-            const slug = nameRef.current?.value;
-            const roomData = { name: slug };
-            const result = RoomSchema.safeParse(roomData);
+          onClick={() => {
+            const inviteInput = inviteRef.current?.value || "";
+            const inviteCode = extractInviteCode(inviteInput);
 
-            if (!result.success) {
-              const fieldErrors = result.error.flatten().fieldErrors;
-              setErrors({ name: fieldErrors.name?.[0] ?? "" });
+            if (!inviteCode) {
+              setErrors({ inviteCode: "Please enter an invite link or code" });
               return;
             }
 
-            try {
-              await axios.get(`${BACKEND_URL}/roomId/${slug}`);
-              router.push(`/canvas/${roomData.name}`);
-            } catch (err) {
-              if (axios.isAxiosError(err)) {
-                setErrors({ name: err.response?.data.message });
-              } else {
-                setErrors({ name: "Unexpected Error" });
-              }
-            }
+            // Forward to the join page which handles public/private logic
+            router.push(`/join/${inviteCode}`);
           }}
         />
       </div>
