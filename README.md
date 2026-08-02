@@ -180,7 +180,8 @@ flowchart LR
 | **ORM** | Prisma 7 (with Prisma Adapter for PostgreSQL) |
 | **Language** | TypeScript 5.9 (strict mode) |
 | **Containerization** | Docker, Docker Compose |
-| **Deployment** | Docker Hub → EC2 |
+| **CI/CD** | GitHub Actions |
+| **Deployment** | GitHub Actions → Docker Hub → EC2 |
 
 ---
 
@@ -256,13 +257,21 @@ pnpm turbo dev --filter=ws-server
 
 <h2 id="deployment">🚀 Deployment</h2>
 
+InkCalibur uses a fully automated **CI/CD pipeline** powered by **GitHub Actions**. When you push code to the `main` branch, GitHub Actions builds the Docker images on GitHub's servers, pushes them to Docker Hub, and then deploys them to your EC2 instance — no manual steps required.
+
 ### Architecture
 
 ```mermaid
 flowchart LR
-    subgraph Local["Local Machine"]
-        BUILD["Build & Push Images"]
-        DC["docker-compose.yml"]
+    subgraph Dev["Developer"]
+        PUSH["git push origin main"]
+    end
+
+    subgraph GH["GitHub"]
+        REPO["GitHub Repository"]
+        ACTIONS["GitHub Actions<br/>(runs on GitHub servers)"]
+        BUILD["Build Docker Images"]
+        PUSHIMG["Push Images to Docker Hub"]
     end
 
     subgraph Hub["Docker Hub"]
@@ -270,15 +279,51 @@ flowchart LR
     end
 
     subgraph EC2["EC2 Production"]
-        PULL["Pull & Run Images"]
-        DCP["docker-compose.prod.yml"]
+        PULL["docker pull Images"]
+        COMPOSE["docker compose up -d<br/>(docker-compose.prod.yml)"]
     end
 
-    BUILD -- "docker push" --> IMAGES
+    PUSH --> REPO
+    REPO -- "push to main<br/>triggers workflow" --> ACTIONS
+    ACTIONS --> BUILD
+    BUILD --> PUSHIMG
+    PUSHIMG -- "docker push" --> IMAGES
     IMAGES -- "docker pull" --> PULL
-    DC --> BUILD
-    DCP --> PULL
+    PULL --> COMPOSE
 ```
+
+### How It Works
+
+1. **Push to GitHub** — You push your code to the `main` branch of the repository.
+2. **GitHub Actions triggers** — The workflow (`.github/workflows/deploy.yml`) runs automatically on GitHub's servers.
+3. **Build & Push** — GitHub Actions logs into Docker Hub, builds the three Docker images (`http-server`, `ws-server`, `frontend`), and pushes them to Docker Hub.
+4. **Deploy to EC2** — GitHub Actions SSHes into your EC2 instance, pulls the latest images, and runs `docker compose up -d` using `docker-compose.prod.yml`.
+
+### Required GitHub Secrets
+
+The workflow requires the following secrets to be configured in your GitHub repository (**Settings → Secrets and variables → Actions**):
+
+| Secret | Description |
+|--------|-------------|
+| `DOCKER_USERNAME` | Your Docker Hub username |
+| `DOCKER_PASSWORD` | Your Docker Hub password or access token |
+| `NEXT_PUBLIC_BACKEND_URL` | Public URL of the HTTP API (e.g., `https://api.yourdomain.com`) |
+| `NEXT_PUBLIC_WS_URL` | Public WebSocket URL (e.g., `wss://ws.yourdomain.com`) |
+| `EC2_HOST` | Public IP or hostname of your EC2 instance |
+| `EC2_USER` | SSH username for EC2 (e.g., `ubuntu`) |
+| `EC2_SSH_KEY` | Private SSH key used to connect to EC2 |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `RESEND_API_KEY` | Resend API key for sending emails |
+
+### One-Time EC2 Setup
+
+Before the first deployment, your EC2 instance needs:
+
+- **Docker** and **Docker Compose** installed
+- The `docker-compose.prod.yml` file (fetched automatically by the workflow from the repo)
+- The `.env` file with `DATABASE_URL` and `RESEND_API_KEY` (written automatically by the workflow)
+
+After this one-time setup, every push to `main` will automatically build, push, and deploy the latest version.
 
 ## 🗄️ Database
 
